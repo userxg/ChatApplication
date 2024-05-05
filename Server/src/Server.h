@@ -26,12 +26,15 @@ private:
 
 	unsigned short listened_port_;
 
+
+private:
+	void ConnectClients();
+
 public:
 
 	Server(unsigned short port);
 
-	void ConnectClients();
-
+	void Run();
 
 };
 

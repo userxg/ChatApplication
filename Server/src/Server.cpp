@@ -2,7 +2,10 @@
 
 Server::Server(unsigned short port) : listened_port_(port)
 {
-	LOG("Server started");
+	sf::Socket::Status listen_status = listener_.listen(listened_port_);
+
+	if (listen_status != sf::Socket::Done) LOG("Failed to listen");
+	else LOG("Server started");
 }
 
 void Server::ConnectClients()
@@ -17,8 +20,15 @@ void Server::ConnectClients()
 		{
 			//new_client->setBlocking(false);
 			clients_.push_back(new_client);
-			LOG("Added client ");
+			LOG("Added client " << clients_.size());
 		}
 		else LOG("Coudn not connect");
 	}
+}
+
+void Server::Run()
+{
+	std::thread incoming_connection_thread(&Server::ConnectClients, this);
+
+	incoming_connection_thread.join();
 }
