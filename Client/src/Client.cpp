@@ -1,5 +1,29 @@
 #include "Client.h"
 #include <iostream>
+
+struct Message
+{
+	//for new clients
+	bool is_new_client = false;
+	bool name_is_taken = false;
+	std::string name_of_new_client;
+
+	//between existing clients
+	std::string client_from;
+	std::string client_to;
+	std::string message;
+};
+
+sf::Packet& operator>>(sf::Packet& inp, Message& msg)
+{
+	inp >> msg.is_new_client >> msg.name_is_taken >> msg.name_of_new_client >> msg.client_from >> msg.client_to >> msg.message;
+	return inp;
+}
+
+
+
+
+
 void Client::InitSFMLWindow()
 {
 	video_mode_ = sf::VideoMode(1920, 1080);
@@ -76,14 +100,14 @@ void Client::RenderImGui()
 
 	*/
 
-	/*if (chat_winow_opened == false)
+	if (chat_window_opened_ == false)
 	{
 		InputName();
 	}
 	else
 	{
 		ChatWindow();
-	}*/
+	}
 }
 
 void Client::SetUpFont()
@@ -104,7 +128,7 @@ void Client::Render()
 
 void Client::InputName()
 {
-	press_btn_ = false;
+	chat_window_opened_ = false;
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
 	if (ImGui::Begin("Input Block", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
@@ -123,10 +147,10 @@ void Client::InputButton()
 {
 	if (ImGui::Button("Continue", ImVec2(300, 50)))
 	{
-
+		chat_window_opened_ = true;
 		//if (SendName())
 		//{
-		//	open_chat_winow = true;
+		//	chat_window_opened  = true;
 		//	//
 		//}
 		//else
@@ -154,5 +178,12 @@ void Client::ChatWindow()
 	}
 	ImGui::End();
 }
+
+void Client::SendNameToServer()
+{
+
+}
+
+
 
 

@@ -20,6 +20,7 @@ private:
 	sf::Clock delta_clock;
 	/*Input window*/
 	char name_[100];
+	bool chat_window_opened_;
 	
 
 
@@ -41,6 +42,7 @@ private:
 	void InputName();
 	void InputButton();
 	void ChatWindow();
+	void SendNameToServer();
 
 
 public:
