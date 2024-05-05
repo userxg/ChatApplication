@@ -20,6 +20,11 @@ sf::Packet& operator>>(sf::Packet& inp, Message& msg)
 	return inp;
 }
 
+sf::Packet& operator<<(sf::Packet& out, Message& msg)
+{
+	out << msg.is_new_client << msg.name_is_taken << msg.name_of_new_client << msg.client_from << msg.client_to << msg.message;
+	return out;
+}
 
 
 
@@ -57,6 +62,7 @@ void Client::PollEvents()
 
 Client::Client()
 {
+	ConnectToServer("127.0.0.1", 2525);
 	InitSFMLWindow();
 	InitImGui();
 }
@@ -147,8 +153,14 @@ void Client::InputButton()
 {
 	if (ImGui::Button("Continue", ImVec2(300, 50)))
 	{
-		chat_window_opened_ = true;
-		//if (SendName())
+
+		Message message_to_the_server;
+		message_to_the_server.name_of_new_client = name_;
+		sf::Packet send_packet_to_the_server;
+		send_packet_to_the_server << message_to_the_server;
+		SendPacketToServer(send_packet_to_the_server);
+	
+		//if (ReceivePacketsFromServer(socket_))
 		//{
 		//	chat_window_opened  = true;
 		//	//
@@ -179,9 +191,43 @@ void Client::ChatWindow()
 	ImGui::End();
 }
 
-void Client::SendNameToServer()
-{
 
+
+void Client::ConnectToServer(const char* ip_adress, unsigned short port)
+{
+	if (socket_.connect(ip_adress, port) != sf::Socket::Done) {
+		LOG("Could not connect to the server");
+	}
+	else {
+		LOG("I am connected");
+	}
+}
+
+void Client::SendPacketToServer(sf::Packet & packet)
+{
+	if (socket_.send(packet) != sf::Socket::Done)
+	{
+		LOG("Could not send packet");
+	}
+	else {
+		LOG("I sent the packet");
+	}
+}
+
+void Client::ReceivePacketsFromServer(sf::TcpSocket* socket)
+{
+	if (socket->receive(last_packet_) == sf::Socket::Done)
+	{
+		Message message_from_server;
+		last_packet_ >> message_from_server;
+		if (message_from_server.name_is_taken) {
+			LOG("Name is taken");
+		}
+		else {
+			LOG("Name is free");
+		}
+		
+	}
 }
 
 
