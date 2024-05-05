@@ -20,7 +20,7 @@ private:
 	sf::Clock delta_clock;
 	/*Input window*/
 	char name_[100];
-	bool press_btn_;
+	
 
 
 private:

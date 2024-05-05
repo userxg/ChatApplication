@@ -75,10 +75,15 @@ void Client::RenderImGui()
 		Window2();
 
 	*/
-	if (!press_btn_)
+
+	/*if (chat_winow_opened == false)
+	{
 		InputName();
+	}
 	else
+	{
 		ChatWindow();
+	}*/
 }
 
 void Client::SetUpFont()
@@ -116,7 +121,23 @@ void Client::InputName()
 
 void Client::InputButton()
 {
-	press_btn_ = ImGui::Button("Continue", ImVec2(300,50));
+	if (ImGui::Button("Continue", ImVec2(300, 50)))
+	{
+
+		//if (SendName())
+		//{
+		//	open_chat_winow = true;
+		//	//
+		//}
+		//else
+		//{
+		//	//clean name
+		//}
+			
+
+
+	};
+
 	//auto& style = ImGui::GetStyle();
 	//style.Colors[ImGuiCol_Button] = ImColor(35, 33, 181);
 
