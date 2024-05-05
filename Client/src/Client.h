@@ -23,6 +23,7 @@ private:
 private:
 	/*-------------Start up Functions----------------------*/
 	void InitSFMLWindow();
+	void InitImGui();
 	void PollEvents();
 	bool Running() const;
 	void Update();
@@ -30,6 +31,8 @@ private:
 	//For all ImGui windows
 	void RenderImGui();
 
+
+	void SetUpFont();
 
 	/*----------------ImGui Windows-----------------------*/
 	void Example();
