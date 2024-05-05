@@ -18,6 +18,9 @@ private:
 	sf::RenderWindow* window_;
 	sf::Event sfml_evnt_;
 	sf::Clock delta_clock;
+	/*Input window*/
+	char name_[100];
+	bool press_btn_;
 
 
 private:
@@ -35,7 +38,10 @@ private:
 	void SetUpFont();
 
 	/*----------------ImGui Windows-----------------------*/
-	void Example();
+	void InputName();
+	void InputButton();
+	void ChatWindow();
+
 
 public:
 	Client();
