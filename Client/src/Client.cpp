@@ -1,5 +1,34 @@
 #include "Client.h"
 #include <iostream>
+
+struct Message
+{
+	//for new clients
+	bool is_new_client = false;
+	bool name_is_taken = false;
+	std::string name_of_new_client;
+
+	//between existing clients
+	std::string client_from;
+	std::string client_to;
+	std::string message;
+};
+
+sf::Packet& operator>>(sf::Packet& inp, Message& msg)
+{
+	inp >> msg.is_new_client >> msg.name_is_taken >> msg.name_of_new_client >> msg.client_from >> msg.client_to >> msg.message;
+	return inp;
+}
+
+sf::Packet& operator<<(sf::Packet& out, Message& msg)
+{
+	out << msg.is_new_client << msg.name_is_taken << msg.name_of_new_client << msg.client_from << msg.client_to << msg.message;
+	return out;
+}
+
+
+
+
 void Client::InitSFMLWindow()
 {
 	video_mode_ = sf::VideoMode(1920, 1080);
@@ -33,6 +62,7 @@ void Client::PollEvents()
 
 Client::Client()
 {
+	ConnectToServer("127.0.0.1", 2525);
 	InitSFMLWindow();
 	InitImGui();
 }
@@ -76,14 +106,14 @@ void Client::RenderImGui()
 
 	*/
 
-	/*if (chat_winow_opened == false)
+	if (chat_window_opened_ == false)
 	{
 		InputName();
 	}
 	else
 	{
 		ChatWindow();
-	}*/
+	}
 }
 
 void Client::SetUpFont()
@@ -104,7 +134,7 @@ void Client::Render()
 
 void Client::InputName()
 {
-	press_btn_ = false;
+	chat_window_opened_ = false;
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
 	if (ImGui::Begin("Input Block", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
@@ -124,9 +154,15 @@ void Client::InputButton()
 	if (ImGui::Button("Continue", ImVec2(300, 50)))
 	{
 
-		//if (SendName())
+		Message message_to_the_server;
+		message_to_the_server.name_of_new_client = name_;
+		sf::Packet send_packet_to_the_server;
+		send_packet_to_the_server << message_to_the_server;
+		SendPacketToServer(send_packet_to_the_server);
+	
+		//if (ReceivePacketsFromServer(socket_))
 		//{
-		//	open_chat_winow = true;
+		//	chat_window_opened  = true;
 		//	//
 		//}
 		//else
@@ -154,5 +190,46 @@ void Client::ChatWindow()
 	}
 	ImGui::End();
 }
+
+
+
+void Client::ConnectToServer(const char* ip_adress, unsigned short port)
+{
+	if (socket_.connect(ip_adress, port) != sf::Socket::Done) {
+		LOG("Could not connect to the server");
+	}
+	else {
+		LOG("I am connected");
+	}
+}
+
+void Client::SendPacketToServer(sf::Packet & packet)
+{
+	if (socket_.send(packet) != sf::Socket::Done)
+	{
+		LOG("Could not send packet");
+	}
+	else {
+		LOG("I sent the packet");
+	}
+}
+
+void Client::ReceivePacketsFromServer(sf::TcpSocket* socket)
+{
+	if (socket->receive(last_packet_) == sf::Socket::Done)
+	{
+		Message message_from_server;
+		last_packet_ >> message_from_server;
+		if (message_from_server.name_is_taken) {
+			LOG("Name is taken");
+		}
+		else {
+			LOG("Name is free");
+		}
+		
+	}
+}
+
+
 
 

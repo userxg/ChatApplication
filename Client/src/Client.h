@@ -8,7 +8,7 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
-
+#define LOG(x) std::cout << x << std::endl
 class Client
 {
 
@@ -18,8 +18,14 @@ private:
 	sf::RenderWindow* window_;
 	sf::Event sfml_evnt_;
 	sf::Clock delta_clock;
+
 	/*Input window*/
 	char name_[100];
+	bool chat_window_opened_;
+
+	/*Work with sockets*/
+	sf::TcpSocket socket_;
+	sf::Packet last_packet_;
 	
 
 
@@ -41,7 +47,9 @@ private:
 	void InputName();
 	void InputButton();
 	void ChatWindow();
-
+	void ConnectToServer(const char * ip_adress, unsigned short port);
+	void SendPacketToServer(sf::Packet & packet);
+	void ReceivePacketsFromServer(sf::TcpSocket * socket);
 
 public:
 	Client();
