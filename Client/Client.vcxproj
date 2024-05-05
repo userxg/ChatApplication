@@ -155,12 +155,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Client.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui-SFML.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui_draw.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui_tables.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
