@@ -162,9 +162,11 @@
     <ClCompile Include="imGuiSFMLcpp\imgui_tables.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MyMessage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Client.h" />
+    <ClInclude Include="src\MyMessage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

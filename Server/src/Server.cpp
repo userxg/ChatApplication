@@ -83,7 +83,7 @@ void Server::ManageIncomingPackets()
 
 void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
 {
-	Message received_msg;
+	MyMessage received_msg;
 	received_packet >> received_msg;
 
 	if (received_msg.is_new_client != true)
@@ -102,9 +102,11 @@ void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
 			received_msg.name_is_taken = true;
 			SendValidationResponse(validation_packet, client);
 		}
+		else
 		{
 			received_msg.is_new_client = false;
 			received_msg.name_is_taken = false;
+			client->name = received_msg.name_of_new_client;
 			SendValidationResponse(validation_packet, client);
 		}
 	}
@@ -132,7 +134,7 @@ Client* Server::FindClient(const std::string& name)
 	return nullptr;
 }
 
-void Server::SendToClient(Message& send_msg, Client* client)
+void Server::SendToClient(MyMessage& send_msg, Client* client)
 {
 	sf::Packet send_packet;
 

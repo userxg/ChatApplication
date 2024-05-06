@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <SFML/Network.hpp>
-
+#include "MyMessage.h"
 
 #define LOG(x) std::cout << x << std::endl
 
@@ -19,30 +19,6 @@ struct Client
 	bool online;
 };
 
-struct Message
-{
-	//for new clients
-	bool is_new_client = false;
-	bool name_is_taken = false;
-	std::string name_of_new_client;
-
-	//between existing clients
-	std::string client_from;
-	std::string client_to;
-	std::string message;
-};
-
-
-sf::Packet& operator>>(sf::Packet& inp, Message& msg)
-{
-	inp >> msg.is_new_client >> msg.name_is_taken >> msg.name_of_new_client >> msg.client_from >> msg.client_to >> msg.message;
-	return inp;
-}
-sf::Packet& operator<<(sf::Packet& out, const Message& msg)
-{
-	out << msg.is_new_client << msg.name_is_taken << msg.name_of_new_client << msg.client_from << msg.client_to << msg.message;
-	return out;
-}
 
 class Server
 {
@@ -61,7 +37,7 @@ private:
 
 	void ProcessReceivedPacket(sf::Packet& received_packet, Client* client);
 	void SendValidationResponse(sf::Packet& validation_packet, Client* client);
-	void SendToClient(Message& send_packet, Client* client);
+	void SendToClient(MyMessage& send_packet, Client* client);
 	Client* FindClient(const std::string& name);
 	
 	

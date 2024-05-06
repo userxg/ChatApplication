@@ -1,30 +1,7 @@
 #include "Client.h"
 #include <iostream>
 
-struct Message
-{
-	//for new clients
-	bool is_new_client = false;
-	bool name_is_taken = false;
-	std::string name_of_new_client;
 
-	//between existing clients
-	std::string client_from;
-	std::string client_to;
-	std::string message;
-};
-
-sf::Packet& operator>>(sf::Packet& inp, Message& msg)
-{
-	inp >> msg.is_new_client >> msg.name_is_taken >> msg.name_of_new_client >> msg.client_from >> msg.client_to >> msg.message;
-	return inp;
-}
-
-sf::Packet& operator<<(sf::Packet& out, Message& msg)
-{
-	out << msg.is_new_client << msg.name_is_taken << msg.name_of_new_client << msg.client_from << msg.client_to << msg.message;
-	return out;
-}
 
 
 
@@ -154,11 +131,21 @@ void Client::InputButton()
 	if (ImGui::Button("Continue", ImVec2(300, 50)))
 	{
 
-		Message message_to_the_server;
-		message_to_the_server.name_of_new_client = name_;
-		sf::Packet send_packet_to_the_server;
-		send_packet_to_the_server << message_to_the_server;
-		SendPacketToServer(send_packet_to_the_server);
+		MyMessage validation_msg;
+		validation_msg.is_new_client = true;
+		validation_msg.name_of_new_client = name_;
+		sf::Packet validation_packet;
+		validation_packet << validation_msg;
+
+		SendPacketToServer(validation_packet);
+
+		validation_msg = ReceivePacketsFromServer(&socket_);
+
+		if (validation_msg.name_is_taken == false)
+		{
+			chat_window_opened_ = true;
+		}
+
 	
 		//if (ReceivePacketsFromServer(socket_))
 		//{
@@ -214,20 +201,19 @@ void Client::SendPacketToServer(sf::Packet & packet)
 	}
 }
 
-void Client::ReceivePacketsFromServer(sf::TcpSocket* socket)
+MyMessage Client::ReceivePacketsFromServer(sf::TcpSocket* socket)
 {
-	if (socket->receive(last_packet_) == sf::Socket::Done)
+
+	sf::Socket::Status packet_status = socket->receive(last_packet_);
+
+	if (packet_status == sf::Socket::Done)
 	{
-		Message message_from_server;
+		MyMessage message_from_server;
 		last_packet_ >> message_from_server;
-		if (message_from_server.name_is_taken) {
-			LOG("Name is taken");
-		}
-		else {
-			LOG("Name is free");
-		}
-		
+		LOG("Validation response");
+		return message_from_server;
 	}
+
 }
 
 

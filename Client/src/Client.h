@@ -7,6 +7,7 @@
 #include <SFML/Network.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
+#include "MyMessage.h"
 
 #define LOG(x) std::cout << x << std::endl
 class Client
@@ -49,7 +50,7 @@ private:
 	void ChatWindow();
 	void ConnectToServer(const char * ip_adress, unsigned short port);
 	void SendPacketToServer(sf::Packet & packet);
-	void ReceivePacketsFromServer(sf::TcpSocket * socket);
+	MyMessage ReceivePacketsFromServer(sf::TcpSocket * socket);
 
 public:
 	Client();
