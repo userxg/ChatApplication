@@ -64,21 +64,28 @@ void Server::ManageIncomingPackets()
 
 			sf::Socket::Status rev_packet_status = client->socket.receive(received_packet);
 
-			switch (rev_packet_status)
+
+			//implement Disconected
+
+			if (received_packet.getDataSize() > 0)
 			{
-			case sf::Socket::Done:
+				ReceivedLog(received_packet);
 				ProcessReceivedPacket(received_packet, client);
-				break;
-			case sf::Socket::NotReady:
-				break;
-			case sf::Socket::Disconnected:
-				break;
-			case sf::Socket::Error:
-				LOG("ERROR on receiving packet");
-				break;
 			}
 		}
 	}
+}
+
+
+
+void Server::ReceivedLog(sf::Packet& received_packet)
+{
+	MyMessage log_message;
+	received_packet >> log_message;
+	if (log_message.sd.is_new_client)
+		LOG("New client tries name: " << log_message.sd.new_client_name);
+	else
+		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
 }
 
 void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
@@ -86,7 +93,7 @@ void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
 	MyMessage received_msg;
 	received_packet >> received_msg;
 
-	if (received_msg.is_new_client != true)
+	if (received_msg.sd.is_new_client != true)
 	{
 
 		SendToClient(received_msg, client);
@@ -94,19 +101,17 @@ void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
 	else
 	{
 		sf::Packet validation_packet;
-		validation_packet << received_msg;
 
-		if (NameIsTaken(received_msg.name_of_new_client))
+		if (NameIsTaken(received_msg.sd.new_client_name))
 		{
-			received_msg.is_new_client = true;
-			received_msg.name_is_taken = true;
+			received_msg.sd.new_client_name = "";
 			SendValidationResponse(validation_packet, client);
 		}
 		else
 		{
-			received_msg.is_new_client = false;
-			received_msg.name_is_taken = false;
-			client->name = received_msg.name_of_new_client;
+			received_msg.sd.is_new_client = false;
+			received_msg.sd.name_is_taken = false;
+			client->name = received_msg.sd.new_client_name;
 			SendValidationResponse(validation_packet, client);
 		}
 	}
@@ -139,7 +144,7 @@ void Server::SendToClient(MyMessage& send_msg, Client* client)
 	sf::Packet send_packet;
 
 	//Change on Client online
-	Client* client_to = FindClient(send_msg.client_to);
+	Client* client_to = FindClient(send_msg.cd.to);
 	if (client_to->online)
 	{
 		

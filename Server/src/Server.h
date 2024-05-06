@@ -45,6 +45,8 @@ private:
 	bool NameIsTaken(const std::string& checked_name);
 	
 
+	//LOG functions
+	void ReceivedLog(sf::Packet& received_packet);
 public:
 
 	Server(unsigned short port);
