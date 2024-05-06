@@ -35,9 +35,9 @@ private:
 	void ManageIncomingPackets();
 
 
-	void ProcessReceivedPacket(sf::Packet& received_packet, Client* client);
-	void SendValidationResponse(sf::Packet& validation_packet, Client* client);
-	void SendToClient(MyMessage& send_packet, Client* client);
+	void ProcessReceivedMessage(const MyMessage& received_msg, Client* client);
+	void SendValidationResponse(const MyMessage& validation_msg, Client* client);
+	void SendToClient(const MyMessage& send_msg, Client* client);
 	Client* FindClient(const std::string& name);
 	
 	
@@ -46,7 +46,7 @@ private:
 	
 
 	//LOG functions
-	void ReceivedLog(sf::Packet& received_packet);
+	void ReceivedLog(const MyMessage& received_packet)const;
 public:
 
 	Server(unsigned short port);

@@ -76,20 +76,13 @@ void Client::Update()
 
 void Client::RenderImGui()
 {
-	/*Implemen all ImGui windwos here
-	* 
-		Window1();
-		Window2();
-
-	*/
-
-	if (chat_window_opened_ == false)
+	if (logged_)
 	{
-		InputName();
+		ChatWindow();
 	}
 	else
 	{
-		ChatWindow();
+		LoginForm();
 	}
 }
 
@@ -109,62 +102,40 @@ void Client::Render()
 }
 
 
-void Client::InputName()
+void Client::LoginForm()
 {
-	chat_window_opened_ = false;
+	//CC - check change
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
 	if (ImGui::Begin("Input Block", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+		
+		//CC
 		ImGui::SetWindowFontScale(2);
-		//auto& style = ImGui::GetStyle();
-		//style.Colors[ImGuiCol_WindowBg] = ImColor(25, 123, 255);
-		ImGui::Text("User name: ");
-		ImGui::InputText("##user name", name_, 100);
-		//std::cout << name_;
-		InputButton();
+		ImGui::Text("New name: ");
+		ImGui::InputText("##name", &name_);
+
+		if (ImGui::Button("Login"))
+		{
+			//
+			if (IsValidName(name_))
+			{
+				logged_ = true;
+			}
+			else
+			{
+
+			}
+		}
+
+		//if ()
+		//ImGui::Text("New name: ");
+
+		
 	}
 	ImGui::End();
 }
 
-void Client::InputButton()
-{
-	if (ImGui::Button("Continue", ImVec2(300, 50)))
-	{
 
-		MyMessage validation_msg;
-		validation_msg.is_new_client = true;
-		validation_msg.name_of_new_client = name_;
-		sf::Packet validation_packet;
-		validation_packet << validation_msg;
-
-		SendPacketToServer(validation_packet);
-
-		validation_msg = ReceivePacketsFromServer(&socket_);
-
-		if (validation_msg.name_is_taken == false)
-		{
-			chat_window_opened_ = true;
-		}
-
-	
-		//if (ReceivePacketsFromServer(socket_))
-		//{
-		//	chat_window_opened  = true;
-		//	//
-		//}
-		//else
-		//{
-		//	//clean name
-		//}
-			
-
-
-	};
-
-	//auto& style = ImGui::GetStyle();
-	//style.Colors[ImGuiCol_Button] = ImColor(35, 33, 181);
-
-}
 
 void Client::ChatWindow()
 {
@@ -172,8 +143,8 @@ void Client::ChatWindow()
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
 	if (ImGui::Begin("Test", nullptr, ImGuiWindowFlags_NoTitleBar| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 		ImGui::SetWindowFontScale(2);
-		ImGui::Text("User name:");
-		ImGui::Text(name_);
+		ImGui::Text("Chat window");
+		
 	}
 	ImGui::End();
 }
@@ -190,31 +161,55 @@ void Client::ConnectToServer(const char* ip_adress, unsigned short port)
 	}
 }
 
-void Client::SendPacketToServer(sf::Packet & packet)
+bool Client::IsValidName(const std::string& name) const
 {
-	if (socket_.send(packet) != sf::Socket::Done)
+	SendValidationQuery(name);
+
+	MyMessage val_response = ValidaionResponse();
+
+	if (val_response.sd.name_is_taken)
 	{
-		LOG("Could not send packet");
+		LOG("Name: " << name << " is taken");
+		return false;
+	}
+	else
+	{
+		LOG("welcome to usf");
+		return true;
+	}
+
+}
+
+void Client::SendValidationQuery(const std::string& name) const
+{
+	MyMessage validation_msg(true, false, name);
+	sf::Packet val_packet;
+	val_packet << validation_msg;
+
+	if (socket_.send(val_packet) != sf::Socket::Done)
+	{
+		LOG("Could not send Validation request");
 	}
 	else {
-		LOG("I sent the packet");
+		LOG("Validation request");
 	}
 }
 
-MyMessage Client::ReceivePacketsFromServer(sf::TcpSocket* socket)
+MyMessage Client::ValidaionResponse() const
 {
+	sf::Packet val_pckt;
 
-	sf::Socket::Status packet_status = socket->receive(last_packet_);
+	sf::Socket::Status receive_status = socket_.receive(val_pckt);
 
-	if (packet_status == sf::Socket::Done)
+	if (receive_status == sf::Socket::Done)
 	{
-		MyMessage message_from_server;
-		last_packet_ >> message_from_server;
-		LOG("Validation response");
-		return message_from_server;
+		MyMessage validation_msg;
+		val_pckt >> validation_msg;
+		LOG("getting validation response");
+		return validation_msg;
 	}
-
 }
+
 
 
 

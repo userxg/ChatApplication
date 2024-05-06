@@ -2,6 +2,8 @@
 
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include <imgui_stdlib.h>
+
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
@@ -14,18 +16,19 @@ class Client
 {
 
 private:
-	/*-------------Start up Members----------------------*/
+	/*----------------Start up Members----------------------*/
 	sf::VideoMode video_mode_;
 	sf::RenderWindow* window_;
 	sf::Event sfml_evnt_;
 	sf::Clock delta_clock;
 
-	/*Input window*/
-	char name_[100];
-	bool chat_window_opened_;
+	/*------------------Input window-------------------------*/
+	std::string name_ = "";
+	bool logged_ = false;
 
-	/*Work with sockets*/
-	sf::TcpSocket socket_;
+
+	/*-------------------Work with sockets------------------*/
+	mutable sf::TcpSocket socket_;
 	sf::Packet last_packet_;
 	
 
@@ -45,12 +48,15 @@ private:
 	void SetUpFont();
 
 	/*----------------ImGui Windows-----------------------*/
-	void InputName();
-	void InputButton();
+	void LoginForm();
+	
 	void ChatWindow();
 	void ConnectToServer(const char * ip_adress, unsigned short port);
-	void SendPacketToServer(sf::Packet & packet);
-	MyMessage ReceivePacketsFromServer(sf::TcpSocket * socket);
+
+	bool IsValidName(const std::string& name)const;
+	void SendValidationQuery(const std::string& name)const;
+	MyMessage ValidaionResponse()const;
+
 
 public:
 	Client();

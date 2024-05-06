@@ -10,6 +10,7 @@ Server::Server(unsigned short port) : listened_port_(port)
 
 bool Server::NameIsTaken(const std::string& checked_name)
 {
+	LOG("Check if name is taken");
 	for (const auto& client : clients_)
 	{
 		if (client->name == checked_name)
@@ -61,6 +62,7 @@ void Server::ManageIncomingPackets()
 			Client* client = clients_[i];
 
 			sf::Packet received_packet;
+			
 
 			sf::Socket::Status rev_packet_status = client->socket.receive(received_packet);
 
@@ -69,8 +71,10 @@ void Server::ManageIncomingPackets()
 
 			if (received_packet.getDataSize() > 0)
 			{
-				ReceivedLog(received_packet);
-				ProcessReceivedPacket(received_packet, client);
+				MyMessage received_msg;
+				received_packet >> received_msg;
+				ReceivedLog(received_msg);
+				ProcessReceivedMessage(received_msg, client);
 			}
 		}
 	}
@@ -78,42 +82,38 @@ void Server::ManageIncomingPackets()
 
 
 
-void Server::ReceivedLog(sf::Packet& received_packet)
+void Server::ReceivedLog(const MyMessage& log_message) const
 {
-	MyMessage log_message;
-	received_packet >> log_message;
+	
 	if (log_message.sd.is_new_client)
 		LOG("New client tries name: " << log_message.sd.new_client_name);
 	else
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
 }
 
-void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
+void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* client)
 {
-	MyMessage received_msg;
-	received_packet >> received_msg;
-
-	if (received_msg.sd.is_new_client != true)
+	if (received_msg.sd.is_new_client == true)
 	{
-
-		SendToClient(received_msg, client);
-	}
-	else
-	{
-		sf::Packet validation_packet;
-
 		if (NameIsTaken(received_msg.sd.new_client_name))
 		{
-			received_msg.sd.new_client_name = "";
-			SendValidationResponse(validation_packet, client);
+			MyMessage validation_response(true, true, "");
+			LOG("Name is taken");
+			SendValidationResponse(validation_response, client);
+
 		}
 		else
 		{
-			received_msg.sd.is_new_client = false;
-			received_msg.sd.name_is_taken = false;
+			MyMessage validation_response(false, false, received_msg.sd.new_client_name);
 			client->name = received_msg.sd.new_client_name;
-			SendValidationResponse(validation_packet, client);
+			LOG("Name is available");
+			SendValidationResponse(validation_response, client);
 		}
+		
+	}
+	else
+	{
+		SendToClient(received_msg, client);
 	}
 
 
@@ -122,8 +122,11 @@ void Server::ProcessReceivedPacket(sf::Packet& received_packet, Client* client)
 void Server::Run()
 {
 	std::thread incoming_connection_thread(&Server::ConnectIncomingClients, this);
+	std::thread manage_incoming_packets(&Server::ManageIncomingPackets, this);
+
 
 	incoming_connection_thread.join();
+	manage_incoming_packets.join();
 }
 
 
@@ -139,7 +142,7 @@ Client* Server::FindClient(const std::string& name)
 	return nullptr;
 }
 
-void Server::SendToClient(MyMessage& send_msg, Client* client)
+void Server::SendToClient(const MyMessage& send_msg, Client* client)
 {
 	sf::Packet send_packet;
 
@@ -163,8 +166,11 @@ void Server::SendToClient(MyMessage& send_msg, Client* client)
 	}
 }
 
-void Server::SendValidationResponse(sf::Packet& send_packet, Client* client)
+void Server::SendValidationResponse(const MyMessage& send_msg, Client* client)
 {
+	LOG("sending Validation response");
+	sf::Packet send_packet;
+	send_packet << send_msg;
 	if (client->socket.send(send_packet) != sf::Socket::Done)
 	{
 		LOG("Cound't send packet");
