@@ -46,6 +46,7 @@ private:
 	bool ClientExists(const std::string& checked_name);
 	bool NameIsTaken(const std::string& checked_name);
 	void SendValidationResponse(const MyMessage& validation_msg, Client* client);
+	void LoadPenpals(MyMessage& val_resp_msg);
 
 	//LOG functions
 	void ReceivedLog(const MyMessage& received_packet)const;

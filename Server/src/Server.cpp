@@ -96,6 +96,23 @@ void Server::ManageIncomingPackets()
 
 
 
+
+void Server::LoadPenpals(MyMessage& val_rsp_msg)
+{
+	
+	for (auto& client : clients_)
+	{
+		if (client->name != "Vait for name")
+		{
+			val_rsp_msg.sd.penpals.push_back(client->name);
+			++val_rsp_msg.sd.penpals_cnt;
+		}
+	}
+	
+}
+
+
+
 void Server::ReceivedLog(const MyMessage& log_message) const
 {
 	
@@ -120,6 +137,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		{
 			MyMessage validation_response(true, false, received_msg.sd.new_client_name);
 			BroadcastMessage(validation_response);
+			LoadPenpals(validation_response);
 			client->name = received_msg.sd.new_client_name;
 			LOG("Name is available");
 			SendValidationResponse(validation_response, client);

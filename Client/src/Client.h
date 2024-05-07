@@ -63,9 +63,10 @@ private:
 	void ProcessIncomingMessage(const MyMessage& received_msg);
 
 	/*---------------------Login system-------------------*/
-	bool IsValidName(const std::string& name)const;
+	bool TryLogin(const std::string& name);
 	void SendValidationQuery(const std::string& name)const;
 	MyMessage ValidaionResponse()const;
+	void DownloadPenpals(MyMessage& val_rsp_msg);
 
 
 	/*--------------Test & Debug-------------------------*/

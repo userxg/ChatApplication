@@ -153,7 +153,7 @@ void Client::LoginForm()
 		if (ImGui::Button("Login"))
 		{
 			//
-			if (IsValidName(name_))
+			if (TryLogin(name_))
 			{
 				logged_ = true;
 				socket_.setBlocking(false);
@@ -223,7 +223,7 @@ void Client::ReceivePackets()
 	{
 		if (logged_)
 		{
-			LOG("Receiving....");
+			//LOG("Receiving....");
 			sf::Packet received_pckt;
 			sf::Socket::Status rev_packet_status = socket_.receive(received_pckt);
 
@@ -264,7 +264,7 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 
 }
 
-bool Client::IsValidName(const std::string& name) const
+bool Client::TryLogin(const std::string& name) 
 {
 	SendValidationQuery(name);
 
@@ -278,6 +278,7 @@ bool Client::IsValidName(const std::string& name) const
 	else
 	{
 		LOG("welcome " << name_);
+		DownloadPenpals(val_response);
 		return true;
 	}
 
@@ -310,6 +311,15 @@ MyMessage Client::ValidaionResponse() const
 		val_pckt >> validation_msg;
 		LOG("getting validation response");
 		return validation_msg;
+	}
+}
+
+void Client::DownloadPenpals(MyMessage& val_rsp_msg)
+{
+	for (int i = 0; i < val_rsp_msg.sd.penpals.size(); ++i)
+	{
+		Penpal* new_penpal = new Penpal(val_rsp_msg.sd.penpals[i]);
+		penpals_.push_back(new_penpal);
 	}
 }
 

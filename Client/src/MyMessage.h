@@ -27,6 +27,9 @@ struct MyMessage
 		bool is_new_client = false;
 		bool name_is_taken = false;
 		std::string new_client_name;
+		int penpals_cnt;
+		std::vector<std::string> penpals;
+
 	}sd;
 
 
