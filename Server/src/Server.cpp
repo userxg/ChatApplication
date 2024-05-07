@@ -35,6 +35,20 @@ bool Server::ClientExists(const std::string& checked_name)
 	return false;
 }
 
+void Server::BroadcastMessage(const MyMessage& send_msg)
+{
+	LOG("Broadcasting");
+	MyMessage broad_msg = send_msg;
+	for (auto& client : clients_)
+	{
+		if (client->name != "Vait for name")
+		{
+			broad_msg.cd.to = client->name;
+			SendToClient(broad_msg, client);
+		}
+	}
+}
+
 void Server::ConnectIncomingClients()
 {
 	while (true)
@@ -104,7 +118,8 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		}
 		else
 		{
-			MyMessage validation_response(false, false, received_msg.sd.new_client_name);
+			MyMessage validation_response(true, false, received_msg.sd.new_client_name);
+			BroadcastMessage(validation_response);
 			client->name = received_msg.sd.new_client_name;
 			LOG("Name is available");
 			SendValidationResponse(validation_response, client);
@@ -152,10 +167,11 @@ void Server::SendToClient(const MyMessage& send_msg, Client* client)
 	{
 		
 		send_packet << send_msg;
-		if (client->socket.send(send_packet) != sf::Socket::Done)
+		if (client_to->socket.send(send_packet) != sf::Socket::Done)
 		{
 			LOG("Cound't send packet");
 		}
+		else LOG("Send to " << client_to->name);
 	}
 	else
 	{

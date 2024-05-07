@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="imGuiSFMLcpp\imgui_stdlib.cpp" />
+    <ClCompile Include="src\Penpal.cpp" />
     <ClCompile Include="src\Client.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui-SFML.cpp" />
     <ClCompile Include="imGuiSFMLcpp\imgui.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="src\MyMessage.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Penpal.h" />
     <ClInclude Include="src\Client.h" />
     <ClInclude Include="src\MyMessage.h" />
   </ItemGroup>

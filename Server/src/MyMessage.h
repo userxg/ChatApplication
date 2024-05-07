@@ -3,6 +3,7 @@
 #include <SFML/Network.hpp>
 #include <iostream>
 
+
 struct MyMessage
 {
 
@@ -27,6 +28,7 @@ struct MyMessage
 		bool is_new_client = false;
 		bool name_is_taken = false;
 		std::string new_client_name;
+		
 	}sd;
 	
 
