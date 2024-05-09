@@ -163,9 +163,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Penpal.h" />
     <ClInclude Include="src\MyMessage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Penpal.cpp" />
     <ClCompile Include="src\MyMessage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -5,11 +5,10 @@
 #include <thread>
 #include <string>
 #include <vector>
-#include <SFML/Network.hpp>
 #include "MyMessage.h"
 
 #define LOG(x) std::cout << x << std::endl
-
+using namespace Net;
 
 struct Client
 {	

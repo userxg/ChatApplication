@@ -6,13 +6,16 @@
 
 #include <thread>
 #include <SFML/Graphics.hpp>
-#include <SFML/Network.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include "MyMessage.h"
 #include "Penpal.h"
 
+
 #define LOG(x) std::cout << x << std::endl
+
+using namespace Net;
+
 class Client
 {
 
@@ -77,5 +80,6 @@ public:
 	Client();
 	void Run();
 	~Client();
+	
 };
 
