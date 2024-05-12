@@ -44,6 +44,11 @@ void Client::InitTestData()
 	penpals_[0] = new Penpal("Nikolay");
 	penpals_[1] = new Penpal("Vasiluy");
 	penpals_[2] = new Penpal("Someone");
+	penpals_[0]->chatting.push_back({ name_, penpals_[0]->name, "hello, Nikolay" });
+	penpals_[0]->chatting.push_back({ penpals_[0]->name, name_, "hello, " + name_ });
+
+	penpals_[1]->chatting.push_back({ name_, penpals_[0]->name, "How is it going" });
+	//penpals_[1]->chatting.push_back({ penpals_[0]->name, name_, "hello, " + name_ });
 }
 
 void Client::LogReceivedMessage(const MyMessage& received_msg)
@@ -58,13 +63,14 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 	}
 }
 
-Client::Client()
+Client::Client() : name_(""), logged_(false), opened_chat_window(false)
 {
 	ConnectToServer("127.0.0.1", 2525);
+	InitVariables();
 	InitSFMLWindow();
 	InitImGui();
 
-	InitTestData();
+	//InitTestData();
 
 
 }
@@ -103,7 +109,7 @@ void Client::RenderImGui()
 {
 	if (logged_)
 	{
-		ChatWindow();
+		Application();
 	}
 	else
 	{
@@ -137,6 +143,11 @@ void Client::SFMLGuiRun()
 	ImGui::SFML::Shutdown();
 }
 
+void Client::InitVariables()
+{
+
+}
+
 
 void Client::LoginForm()
 {
@@ -164,9 +175,6 @@ void Client::LoginForm()
 			}
 		}
 
-		//if ()
-		//ImGui::Text("New name: ");
-
 		
 	}
 	ImGui::End();
@@ -174,34 +182,92 @@ void Client::LoginForm()
 
 
 
+
+void Client::Application()
+{
+	MemberWindow();
+	if (opened_chat_window)
+	{
+		ChatWindow();
+		SendWindow();
+	}
+	
+}
+
+void Client::MemberWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(400, 1080));
+	if (ImGui::Begin("Members", NULL, NULL))
+	{
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SetWindowFontScale(2);
+
+
+		for (int i = 0; i < penpals_.size(); i++)
+		{
+			if (ImGui::Selectable(penpals_[i]->name.c_str(), selected_penpal_ == i))
+			{
+				selected_penpal_ = i;
+				opened_chat_window = true;
+			}
+		}
+	}ImGui::End();
+}
+
+
 void Client::ChatWindow()
 {
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
-	if (ImGui::Begin("Test", nullptr, ImGuiWindowFlags_NoTitleBar| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+	ImGui::SetNextWindowSize(ImVec2(1520, 800));
+	if (ImGui::Begin("messages", &opened_chat_window, NULL))
+	{
+		ImGui::SetWindowPos(ImVec2(400, 0));
 		ImGui::SetWindowFontScale(2);
-		ImGui::Text(name_.c_str(), "  Chat window");
-
 		
-
-		if (ImGui::BeginListBox("listbox 1"))
+		for (int i = 0; i < penpals_[selected_penpal_]->chatting.size(); ++i)
 		{
-			for (int n = 0; n < penpals_.size(); n++)
+			std::string msg;
+			if (penpals_[selected_penpal_]->chatting[i].cd.from != name_)
 			{
-				const bool is_selected = (item_current_idx == n);
-				if (ImGui::Selectable(penpals_[n]->name.c_str(), is_selected))
-					item_current_idx = n;
-
-				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
+				msg += (penpals_[selected_penpal_]->chatting[i].cd.from +
+					+ " : " + penpals_[selected_penpal_]->chatting[i].cd.message);
 			}
-			ImGui::EndListBox();
+			else
+			{
+				msg +=  ("me : " + penpals_[selected_penpal_]->chatting[i].cd.message);
+			}
+			ImGui::Text(msg.c_str());
 		}
 
+	}ImGui::End();
+}
 
-	}
-	ImGui::End();
+
+
+void Client::SendWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(1520, 280));
+	if (ImGui::Begin("##sendwindow", &opened_chat_window, ImGuiWindowFlags_NoTitleBar))
+	{
+		ImGui::SetWindowPos(ImVec2(400, 800));
+		ImGui::SetWindowFontScale(2);
+		ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CtrlEnterForNewLine;
+
+		ImGui::SetCursorPos(ImVec2(40, 80));
+		bool enter_input = ImGui::InputTextMultiline("##onsend", &input_msg_buf, ImVec2(1200, ImGui::GetTextLineHeight() * 5), input_text_flags);
+		ImGui::SameLine();
+
+		ImGui::SetCursorPos(ImVec2(1280, 100));
+		bool button_input = ImGui::Button("Send", ImVec2(100, 100));
+
+
+		if (enter_input || button_input)
+		{
+			SendToMessage(input_msg_buf);
+			input_msg_buf = "";
+		}
+
+	}ImGui::End();
+
 }
 
 
@@ -234,16 +300,6 @@ void Client::ReceivePackets()
 				LogReceivedMessage(received_msg);
 				ProcessIncomingMessage(received_msg);
 			}
-			/*if (socket_.receive(received_pckt) == sf::Socket::Done)
-			{
-
-				MyMessage received_msg;
-				received_pckt >> received_msg;
-				LogReceivedMessage(received_msg);
-				ProcessIncomingMessage(received_msg);
-
-			}*/
-			//else LOG("Recive Packet problem");
 		}
 	}
 }
@@ -258,7 +314,8 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	}
 	else
 	{
-		//----------------
+		int sender = FindSender(received_msg.cd.from);
+		penpals_[sender]->chatting.push_back(received_msg);
 	}
 
 
@@ -320,6 +377,33 @@ void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 	{
 		Penpal* new_penpal = new Penpal(val_rsp_msg.sd.penpals[i]);
 		penpals_.push_back(new_penpal);
+	}
+}
+
+int Client::FindSender(const std::string sender_name)
+{
+	for (int i = 0; i < penpals_.size(); ++i)
+	{
+		if (penpals_[i]->name == sender_name)
+			return i;
+	}
+	return -1;
+}
+
+void Client::SendToMessage(const std::string msg)
+{
+	MyMessage send_msg = MyMessage(name_, penpals_[selected_penpal_]->name, msg);
+	sf::Packet send_pck;
+	send_pck << send_msg;
+	sf::Socket::Status send_status = socket_.send(send_pck);
+
+	if (send_status == sf::Socket::Done)
+	{
+		penpals_[selected_penpal_]->chatting.push_back(send_msg);
+	}
+	else
+	{
+		LOG("ERROR: Send message to " << penpals_[selected_penpal_]->name << " \n");
 	}
 }
 

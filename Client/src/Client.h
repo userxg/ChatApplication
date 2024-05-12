@@ -27,12 +27,14 @@ private:
 	sf::Clock delta_clock;
 
 	/*------------------------Login--------------------------*/
-	std::string name_ = "";
-	bool logged_ = false;
+	std::string name_;
+	bool logged_;
 
 	/*------------------------Chat---------------------------*/
 	std::vector<Penpal*> penpals_;
-	int item_current_idx = 0;
+	int selected_penpal_ = 0;
+	bool opened_chat_window;
+	std::string input_msg_buf;
 
 	/*-------------------Work with sockets------------------*/
 	mutable sf::TcpSocket socket_;
@@ -49,6 +51,7 @@ private:
 	void Update();
 	void Render();
 	void SFMLGuiRun();
+	void InitVariables();
 	//For all ImGui windows
 	void RenderImGui();
 
@@ -57,13 +60,19 @@ private:
 
 	/*----------------ImGui Windows-----------------------*/
 	void LoginForm();
+	void Application();
 	void ChatWindow();
+	void MemberWindow();
+	void SendWindow();
+
 
 
 	/*--------------------Network-----------------------------------------------*/
 	void ConnectToServer(const char * ip_adress, unsigned short port);
 	void ReceivePackets();
 	void ProcessIncomingMessage(const MyMessage& received_msg);
+	void SendToMessage(const std::string msg);
+	int FindSender(const std::string sender_name);
 
 	/*---------------------Login system-------------------*/
 	bool TryLogin(const std::string& name);
