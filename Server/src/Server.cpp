@@ -28,7 +28,7 @@ bool Server::NameIsTaken(const std::string& checked_name)
 			data_base >> key >> value;
 			if (key == "name:")
 			{
-				if (value == checked_name);
+				if (value == checked_name)
 				{
 					data_base.close();
 					return true;
