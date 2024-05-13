@@ -13,6 +13,7 @@ enum class InvalidInput
 	kLongName,
 	kWrongFirstNameChar,
 	kWrongCharInsideName,
+	kNameIsTaken,
 
 
 	//input password errors======================

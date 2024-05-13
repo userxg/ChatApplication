@@ -230,8 +230,6 @@ void Client::RegistrationWindow()
 			if (valid_name && valid_password)
 			{
 				TryRegister(name_, password_);
-				opened_log_wind_ = true;
-				name_ = "";
 			}
 			else
 			{
@@ -257,6 +255,9 @@ void Client::RegistrationWindow()
 				break;
 			case InvalidInput::kWrongCharInsideName:
 				ImGui::Text("Invalid name: use only numbers, characters or \"_\"");
+				break;
+			case InvalidInput::kNameIsTaken:
+				ImGui::Text(std::string("Name: "+ name_ + "is taken").c_str());
 				break;
 			}
 		case InvalidInput::kInvalidPassword:
@@ -429,8 +430,21 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 
 void Client::TryRegister(const std::string& name, const std::string& pass)
 {
-	(name, pass);
+	SendRegisterQuery(name, pass);
+	MyMessage val_response = ValidaionResponse();
 
+	if (val_response.sd.name_is_taken)
+	{
+		LOG("Name: " << name << " is taken");
+	}
+	else
+	{
+		LOG("Registered " << name_);
+		opened_log_wind_ = true;
+		name_ = "";
+		password_ = "";
+		re_password_ = "";
+	}
 }
 
 bool Client::TryLogin(const std::string& name)
@@ -450,18 +464,26 @@ bool Client::TryLogin(const std::string& name)
 		DownloadPenpals(val_response);
 		return true;
 	}
-
 }
 
 void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
 {
 	MyMessage validation_msg(true, false, name, pswd);
+	sf::Packet val_packet;
+	val_packet << validation_msg;
 
+	if (socket_.send(val_packet) != sf::Socket::Done)
+	{
+		LOG("Could not send Validation request");
+	}
+	else {
+		LOG("Validation request");
+	}
 }
 
 void Client::SendValidationQuery(const std::string& name) const
 {
-	MyMessage validation_msg(true, false, name);
+	MyMessage validation_msg(true, false, name, "blueprint");
 	sf::Packet val_packet;
 	val_packet << validation_msg;
 

@@ -5,46 +5,55 @@ Server::Server(unsigned short port) : listened_port_(port)
 	sf::Socket::Status listen_status = listener_.listen(listened_port_);
 
 	if (listen_status != sf::Socket::Done) LOG("Failed to listen");
-	else LOG("Server started");
+	else
+	{
+		std::ofstream data_base_create("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt");
+		if (data_base_create.is_open())
+			LOG("DB created");
+		data_base_create.close();
+		LOG("Server started");
+	}
 }
 
 bool Server::NameIsTaken(const std::string& checked_name)
 {
 	LOG("Check if name is taken");
-	for (const auto& client : clients_)
+	std::ifstream data_base(std::string("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt"));
+	if (data_base.is_open())
 	{
-		if (client->name == checked_name)
+		while (!data_base.eof())
 		{
-			return true;
+			std::string key;
+			std::string value;
+			data_base >> key >> value;
+			if (key == "name:")
+			{
+				if (value == checked_name);
+				{
+					data_base.close();
+					return true;
+				}
+			}
 		}
 	}
-
+	data_base.close();
 	return false;
+	
+	
 }
 
-bool Server::ClientExists(const std::string& checked_name)
-{
-	for (const auto& client : clients_)
-	{
-		if (client->name == checked_name)
-		{
-			return true;
-		}
-	}
 
-	return false;
-}
-
+//make another
 void Server::BroadcastMessage(const MyMessage& send_msg)
 {
 	LOG("Broadcasting");
 	MyMessage broad_msg = send_msg;
-	for (auto& client : clients_)
+	for (auto& client : online_clients_)
 	{
-		if (client->name != "Vait for name")
+		if (client->name != "Unlogged")
 		{
 			broad_msg.cd.to = client->name;
-			SendToClient(broad_msg, client);
+			SendToClient(broad_msg);
 		}
 	}
 }
@@ -54,26 +63,33 @@ void Server::ConnectIncomingClients()
 	while (true)
 	{
 
-		Client* new_client = new Client("Vait for name");
+		Client* new_client = new Client("Unlogged");
 		sf::Socket::Status accept_status = listener_.accept(new_client->socket);
 
 		if (accept_status == sf::Socket::Done)
 		{
 			new_client->socket.setBlocking(false);
-			clients_.push_back(new_client);
-			LOG("Added client " << clients_.size());
+			online_clients_.push_back(new_client);
+			LOG("Added client " << online_clients_.size());
 		}
 		else LOG("Coudn not connect");
 	}
+}
+
+void Server::DisconnectClient(Client* client, size_t position)
+{
+	LOG(client->name << " was disconnected");
+	delete client;
+	online_clients_.erase(online_clients_.begin() + position);
 }
 
 void Server::ManageIncomingPackets()
 {
 	while (true)
 	{
-		for (size_t i = 0; i < clients_.size(); ++i)
+		for (size_t i = 0; i < online_clients_.size(); ++i)
 		{
-			Client* client = clients_[i];
+			Client* client = online_clients_[i];
 
 			sf::Packet received_packet;
 			
@@ -81,7 +97,12 @@ void Server::ManageIncomingPackets()
 			sf::Socket::Status rev_packet_status = client->socket.receive(received_packet);
 
 
-			//implement Disconected
+			if (rev_packet_status == sf::Socket::Disconnected)
+			{
+				//erasing
+				DisconnectClient(client, i);
+				break;
+			}
 
 			if (received_packet.getDataSize() > 0)
 			{
@@ -100,18 +121,27 @@ void Server::ManageIncomingPackets()
 void Server::LoadPenpals(MyMessage& val_rsp_msg)
 {
 	
-	for (auto& client : clients_)
+	/*for (auto& client : clients_)
 	{
 		if (client->name != "Vait for name")
 		{
 			val_rsp_msg.sd.penpals.push_back(client->name);
 			++val_rsp_msg.sd.penpals_cnt;
 		}
-	}
+	}*/
 	
 }
 
 
+void Server::AddClientToDB(const MyMessage& val_msg)
+{
+	std::ofstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt", std::ios::app);
+	if (data_base.is_open())
+		LOG("ADD to DB");
+	data_base << "name: " << val_msg.sd.client_name << "\n";
+	data_base << "pswd: " << val_msg.sd.password << "\n";
+	data_base.close();
+}
 
 void Server::ReceivedLog(const MyMessage& log_message) const
 {
@@ -128,17 +158,16 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 	{
 		if (NameIsTaken(received_msg.sd.client_name))
 		{
-			MyMessage validation_response(true, true, "");
+			MyMessage validation_response(true, true, "", "");
 			LOG("Name is taken");
 			SendValidationResponse(validation_response, client);
 
 		}
 		else
 		{
-			MyMessage validation_response(true, false, received_msg.sd.client_name);
+			MyMessage validation_response(true, false, received_msg.sd.client_name, "");
 			BroadcastMessage(validation_response);
-			LoadPenpals(validation_response);
-			client->name = received_msg.sd.client_name;
+			AddClientToDB(received_msg);
 			LOG("Name is available");
 			SendValidationResponse(validation_response, client);
 		}
@@ -146,7 +175,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 	}
 	else
 	{
-		SendToClient(received_msg, client);
+		SendToClient(received_msg);
 	}
 
 
@@ -163,9 +192,9 @@ void Server::Run()
 }
 
 
-Client* Server::FindClient(const std::string& name)
+Client* Server::FindOnlineClient(const std::string& name)
 {
-	for (auto& client : clients_)
+	for (auto& client : online_clients_)
 	{
 		if (client->name == name)
 		{
@@ -175,13 +204,17 @@ Client* Server::FindClient(const std::string& name)
 	return nullptr;
 }
 
-void Server::SendToClient(const MyMessage& send_msg, Client* client)
+void Server::SendToClient(const MyMessage& send_msg)
 {
 	sf::Packet send_packet;
 
 	//Change on Client online
-	Client* client_to = FindClient(send_msg.cd.to);
-	if (client_to->online)
+	Client* client_to = FindOnlineClient(send_msg.cd.to);
+	if (client_to == nullptr)
+	{
+		//Send to offline
+	}
+	else
 	{
 		
 		send_packet << send_msg;
@@ -190,13 +223,6 @@ void Server::SendToClient(const MyMessage& send_msg, Client* client)
 			LOG("Cound't send packet");
 		}
 		else LOG("Send to " << client_to->name);
-	}
-	else
-	{
-
-		//send_msg << 
-		//send_packet << send_msg;
-
 	}
 }
 
