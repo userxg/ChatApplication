@@ -44,5 +44,8 @@
     <ClInclude Include="src\Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\InvalidInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -55,7 +55,7 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 {
 	if (received_msg.sd.is_new_client)
 	{
-		LOG("New client: " << received_msg.sd.new_client_name);
+		LOG("New client: " << received_msg.sd.client_name);
 	}
 	else
 	{
@@ -63,7 +63,8 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 	}
 }
 
-Client::Client() : name_(""), logged_(false), opened_chat_window(false)
+Client::Client() : name_(""), logged_(false), opened_chat_window(false), opened_log_wind_(true),
+input_error_{InvalidInput::NoErrors, InvalidInput::NoErrors}
 {
 	ConnectToServer("127.0.0.1", 2525);
 	InitVariables();
@@ -100,7 +101,7 @@ void Client::Update()
 {
 	//Update PollEvents
 	PollEvents();
-	ImGui::SFML::Update(*window_, delta_clock.restart());
+	ImGui::SFML::Update(*window_, delta_clock_.restart());
 
 
 }
@@ -151,17 +152,37 @@ void Client::InitVariables()
 
 void Client::LoginForm()
 {
-	//CC - check change
+	if (opened_log_wind_)
+	{
+		LoginWindow();
+	}
+	else
+	{
+		RegistrationWindow();
+	}
+	
+}
+
+void Client::LoginWindow()
+{
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
-	if (ImGui::Begin("Input Block", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
-		
+	if (ImGui::Begin("Log in", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+
 		//CC
 		ImGui::SetWindowFontScale(2);
-		ImGui::Text("New name: ");
+		ImGui::Text("username ");
 		ImGui::InputText("##name", &name_);
+		ImGui::Text("password ");
+		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
 
-		if (ImGui::Button("Login"))
+		if (ImGui::Button("I'm new"))
+		{
+			opened_log_wind_ = false;
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Sign in"))
 		{
 			//
 			if (TryLogin(name_))
@@ -174,6 +195,91 @@ void Client::LoginForm()
 
 			}
 		}
+
+
+	}
+	ImGui::End();
+}
+
+void Client::RegistrationWindow()
+{
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
+	if (ImGui::Begin("Registration", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
+
+		//CC
+		ImGui::SetWindowFontScale(2);
+		ImGui::Text("new name: ");
+		ImGui::InputText("##name", &name_);
+		ImGui::Text("password ");
+		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
+		ImGui::Text("re-password ");
+		ImGui::InputText("##re-password", &re_password_, ImGuiInputTextFlags_Password);
+
+
+		if (ImGui::Button("Sign in"))
+		{
+			opened_log_wind_ = true;
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Register"))
+		{
+			bool valid_name = CheckCorrectName(name_);
+			bool valid_password = CheckCorrectPassword(password_, re_password_);
+			if (valid_name && valid_password)
+			{
+				TryRegister(name_, password_);
+				opened_log_wind_ = true;
+				name_ = "";
+			}
+			else
+			{
+				opened_log_wind_ = false;
+
+			}
+
+		}
+
+		switch (input_error_.area)
+		{
+		case InvalidInput::kInvalidName:
+			switch (input_error_.type)
+			{
+			case InvalidInput::kEmptyName:
+				ImGui::Text("Empty name");
+				break;
+			case InvalidInput::kLongName:
+				ImGui::Text("Name is too long");
+				break;
+			case InvalidInput::kWrongFirstNameChar:
+				ImGui::Text("Name should start with character");
+				break;
+			case InvalidInput::kWrongCharInsideName:
+				ImGui::Text("Invalid name: use only numbers, characters or \"_\"");
+				break;
+			}
+		case InvalidInput::kInvalidPassword:
+			switch (input_error_.type)
+			{
+			case InvalidInput::kRePasswordIsNotEqual:
+				ImGui::Text("re-password isn't equal");
+				break;
+			case InvalidInput::kEmptyPassword:
+				ImGui::Text("Empty password");
+				break;
+			case InvalidInput::kLongPassword:
+				ImGui::Text("Password is to long");
+				break;
+			case InvalidInput::kWrongCharInsidePassword:
+				ImGui::Text("Inavalid password: use only numbers, characters or  ~`!@#$%^&*()_-+={[}]|\\:;\"'<,>.?/,");
+				break;
+			}
+		case InvalidInput::NoErrors:
+			break;
+		}
+
+		
 
 		
 	}
@@ -309,7 +415,7 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 
 	if (received_msg.sd.is_new_client)
 	{
-		Penpal* new_penpal = new Penpal(received_msg.sd.new_client_name);
+		Penpal* new_penpal = new Penpal(received_msg.sd.client_name);
 		penpals_.push_back(new_penpal);
 	}
 	else
@@ -321,7 +427,13 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 
 }
 
-bool Client::TryLogin(const std::string& name) 
+void Client::TryRegister(const std::string& name, const std::string& pass)
+{
+	(name, pass);
+
+}
+
+bool Client::TryLogin(const std::string& name)
 {
 	SendValidationQuery(name);
 
@@ -338,6 +450,12 @@ bool Client::TryLogin(const std::string& name)
 		DownloadPenpals(val_response);
 		return true;
 	}
+
+}
+
+void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
+{
+	MyMessage validation_msg(true, false, name, pswd);
 
 }
 
@@ -371,6 +489,8 @@ MyMessage Client::ValidaionResponse() const
 	}
 }
 
+
+
 void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 {
 	for (int i = 0; i < val_rsp_msg.sd.penpals.size(); ++i)
@@ -379,6 +499,77 @@ void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 		penpals_.push_back(new_penpal);
 	}
 }
+
+
+bool Client::CheckCorrectName(const std::string& name)
+{
+	if (name.size() == 0)
+	{
+		input_error_.area = InvalidInput::kInvalidName;
+		input_error_.type = InvalidInput::kEmptyName;
+		return false;
+	}
+
+	if (name.size() > 20)
+	{
+		input_error_.area = InvalidInput::kInvalidName;
+		input_error_.type = InvalidInput::kLongName;
+		return false;
+	}
+
+	if (!((name[0] >= 'A' && name[0] <= 'Z') || (name[0] >= 'a' && name[0] <= 'z')))
+	{
+		input_error_.area = InvalidInput::kInvalidName;
+		input_error_.type = InvalidInput::kWrongFirstNameChar;
+		return false;
+	}
+
+	for (char c : name)
+	{
+		if (!((c >= '0' && c <= '9') || c == '_' ||
+			(name[0] >= 'A' && name[0] <= 'Z') || (name[0] >= 'a' && name[0] <= 'z')))
+		{
+			input_error_.area = InvalidInput::kInvalidName;
+			input_error_.type = InvalidInput::kWrongCharInsideName;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Client::CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd)
+{
+	if (pswd != r_pswd)
+	{
+		input_error_.area = InvalidInput::kInvalidPassword;
+		input_error_.type = InvalidInput::kRePasswordIsNotEqual;
+		return false;
+	}
+	if (pswd.size() == 0)
+	{
+		input_error_.area = InvalidInput::kInvalidPassword;
+		input_error_.type = InvalidInput::kEmptyPassword;
+		return false;
+	}
+
+	if (pswd.size() > 20)
+	{
+		input_error_.area = InvalidInput::kInvalidPassword;
+		input_error_.type = InvalidInput::kLongPassword;
+		return false;
+	}
+	for (char c : pswd)
+	{
+		if (!(c >= '!' && c <= '~'))
+		{
+			input_error_.area = InvalidInput::kInvalidPassword;
+			input_error_.type = InvalidInput::kWrongCharInsidePassword;
+			return false;
+		}
+	}
+	return true;
+}
+
 
 int Client::FindSender(const std::string sender_name)
 {

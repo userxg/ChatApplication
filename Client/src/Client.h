@@ -10,6 +10,7 @@
 #include <SFML/Window.hpp>
 #include "MyMessage.h"
 #include "Penpal.h"
+#include "InvalidInput.h"
 
 
 #define LOG(x) std::cout << x << std::endl
@@ -24,11 +25,15 @@ private:
 	sf::VideoMode video_mode_;
 	sf::RenderWindow* window_;
 	sf::Event sfml_evnt_;
-	sf::Clock delta_clock;
+	sf::Clock delta_clock_;
 
 	/*------------------------Login--------------------------*/
 	std::string name_;
+	std::string password_;
+	std::string re_password_;
 	bool logged_;
+	bool opened_log_wind_;
+	InputError input_error_;
 
 	/*------------------------Chat---------------------------*/
 	std::vector<Penpal*> penpals_;
@@ -69,13 +74,24 @@ private:
 
 	/*--------------------Network-----------------------------------------------*/
 	void ConnectToServer(const char * ip_adress, unsigned short port);
+
 	void ReceivePackets();
 	void ProcessIncomingMessage(const MyMessage& received_msg);
 	void SendToMessage(const std::string msg);
 	int FindSender(const std::string sender_name);
 
 	/*---------------------Login system-------------------*/
+	void LoginWindow();
 	bool TryLogin(const std::string& name);
+
+
+	/*----------Registration----------*/
+	void TryRegister(const std::string& name, const std::string& passoword);
+	void SendRegisterQuery(const std::string& name, const std::string& pswd);
+	void RegistrationWindow();
+
+	bool CheckCorrectName(const std::string& name);
+	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);
 	void SendValidationQuery(const std::string& name)const;
 	MyMessage ValidaionResponse()const;
 	void DownloadPenpals(MyMessage& val_rsp_msg);

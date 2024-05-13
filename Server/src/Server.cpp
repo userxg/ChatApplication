@@ -117,7 +117,7 @@ void Server::ReceivedLog(const MyMessage& log_message) const
 {
 	
 	if (log_message.sd.is_new_client)
-		LOG("New client tries name: " << log_message.sd.new_client_name);
+		LOG("New client tries name: " << log_message.sd.client_name);
 	else
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
 }
@@ -126,7 +126,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 {
 	if (received_msg.sd.is_new_client == true)
 	{
-		if (NameIsTaken(received_msg.sd.new_client_name))
+		if (NameIsTaken(received_msg.sd.client_name))
 		{
 			MyMessage validation_response(true, true, "");
 			LOG("Name is taken");
@@ -135,10 +135,10 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		}
 		else
 		{
-			MyMessage validation_response(true, false, received_msg.sd.new_client_name);
+			MyMessage validation_response(true, false, received_msg.sd.client_name);
 			BroadcastMessage(validation_response);
 			LoadPenpals(validation_response);
-			client->name = received_msg.sd.new_client_name;
+			client->name = received_msg.sd.client_name;
 			LOG("Name is available");
 			SendValidationResponse(validation_response, client);
 		}
