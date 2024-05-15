@@ -5,33 +5,43 @@
 
 namespace Net
 {
+	
+	
+
 	struct MyMessage
 	{
-
+		enum
+		{
+			kNoResponse,
+			kNameIsTaken,
+			kNewRegisterted,
+			kRegistration,
+			kLogin,
+			kNewLogged,
+			KWrongData
+		};
 
 
 		//Default
 		MyMessage()
-			: sd{ false, false, "" }, cd{ "", "", "" } {};
+			: sd{kNoResponse, "", "", 0, {} }, cd{ "", "", "" } {};
 
 		//for Registration of new client
-		MyMessage(bool is_new_client, bool name_is_taken,
+		MyMessage(int response, 
 			const std::string& new_client_name, const std::string& password)
-			: sd{ is_new_client, name_is_taken, new_client_name, password }, cd{ "", "", "" }
+			: sd{ response, new_client_name, password, 0, {} }, cd{ "", "", "" }
 		{}
 
 
 		//for Clients chatting
 		MyMessage(const std::string& name_from, const std::string& name_to, const std::string& message)
-			: sd{ false, false, "" }, cd{ name_from, name_to, message } {}
+			: sd{ kNoResponse, "", "", 0, {} }, cd{ name_from, name_to, message } {}
 
 		struct ServerData
 		{
-			bool is_new_client = false;
-			bool name_is_taken = false;
+			int response;
 			std::string client_name;
 			std::string password;
-			std::string db_file;
 			int penpals_cnt;
 			std::vector<std::string> penpals;
 		}sd;

@@ -42,7 +42,7 @@ private:
 	std::string input_msg_buf;
 
 	/*-------------------Work with sockets------------------*/
-	mutable sf::TcpSocket socket_;
+	sf::TcpSocket socket_;
 	sf::Packet last_packet_;
 	
 
@@ -82,7 +82,9 @@ private:
 
 	/*---------------------Login system-------------------*/
 	void LoginWindow();
-	bool TryLogin(const std::string& name);
+	void TryLogin(const std::string& name, const std::string pswd);
+	void SendValidationQuery(const std::string& name, const std::string pswd);
+	MyMessage ValidaionResponse();
 
 
 	/*----------Registration----------*/
@@ -92,8 +94,7 @@ private:
 
 	bool CheckCorrectName(const std::string& name);
 	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);
-	void SendValidationQuery(const std::string& name)const;
-	MyMessage ValidaionResponse()const;
+	
 	void DownloadPenpals(MyMessage& val_rsp_msg);
 
 

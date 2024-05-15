@@ -3,8 +3,8 @@
 
 enum class InvalidInput
 {
-	NoErrors,
-
+	kNoErrors,
+	kWrongLoginData,
 	//input name errors======================
 	kInvalidName,
 	

@@ -53,18 +53,21 @@ void Client::InitTestData()
 
 void Client::LogReceivedMessage(const MyMessage& received_msg)
 {
-	if (received_msg.sd.is_new_client)
+	switch (received_msg.sd.response)
 	{
-		LOG("New client: " << received_msg.sd.client_name);
-	}
-	else
-	{
+	case MyMessage::kNewRegisterted:
+		LOG("New Registered: " << received_msg.sd.client_name);
+	case MyMessage::kLogin:
+		LOG("get Online: " << received_msg.sd.client_name);
+	default:
 		LOG("[" << received_msg.cd.from << "->" << received_msg.cd.to << "]: " << received_msg.cd.message);
+		break;
 	}
+
 }
 
 Client::Client() : name_(""), logged_(false), opened_chat_window(false), opened_log_wind_(true),
-input_error_{InvalidInput::NoErrors, InvalidInput::NoErrors}
+input_error_{InvalidInput::kNoErrors, InvalidInput::kNoErrors}
 {
 	ConnectToServer("127.0.0.1", 2525);
 	InitVariables();
@@ -176,24 +179,23 @@ void Client::LoginWindow()
 		ImGui::Text("password ");
 		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
 
+
+		if (input_error_.area == InvalidInput::kWrongLoginData)
+		{
+			ImGui::Text("wrong username or password");
+		}
+
+
 		if (ImGui::Button("I'm new"))
 		{
+			input_error_.area = InvalidInput::kNoErrors;
 			opened_log_wind_ = false;
 		}
 		ImGui::SameLine();
 
 		if (ImGui::Button("Sign in"))
 		{
-			//
-			if (TryLogin(name_))
-			{
-				logged_ = true;
-				socket_.setBlocking(false);
-			}
-			else
-			{
-
-			}
+			TryLogin(name_, password_);
 		}
 
 
@@ -233,6 +235,7 @@ void Client::RegistrationWindow()
 			}
 			else
 			{
+				input_error_.area = InvalidInput::kNoErrors;
 				opened_log_wind_ = false;
 
 			}
@@ -276,7 +279,7 @@ void Client::RegistrationWindow()
 				ImGui::Text("Inavalid password: use only numbers, characters or  ~`!@#$%^&*()_-+={[}]|\\:;\"'<,>.?/,");
 				break;
 			}
-		case InvalidInput::NoErrors:
+		default:
 			break;
 		}
 
@@ -414,15 +417,22 @@ void Client::ReceivePackets()
 void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 {
 
-	if (received_msg.sd.is_new_client)
+	switch (received_msg.sd.response)
+	{
+	case MyMessage::kNoResponse:
+	{
+		int sender = FindSender(received_msg.cd.from);
+		penpals_[sender]->chatting.push_back(received_msg);
+	}
+
+		
+	case MyMessage::kNewRegisterted:
 	{
 		Penpal* new_penpal = new Penpal(received_msg.sd.client_name);
 		penpals_.push_back(new_penpal);
 	}
-	else
-	{
-		int sender = FindSender(received_msg.cd.from);
-		penpals_[sender]->chatting.push_back(received_msg);
+	default:
+		break;
 	}
 
 
@@ -433,7 +443,7 @@ void Client::TryRegister(const std::string& name, const std::string& pass)
 	SendRegisterQuery(name, pass);
 	MyMessage val_response = ValidaionResponse();
 
-	if (val_response.sd.name_is_taken)
+	if (val_response.sd.response == MyMessage::kNameIsTaken)
 	{
 		LOG("Name: " << name << " is taken");
 		input_error_.area = InvalidInput::kInvalidName;
@@ -449,28 +459,29 @@ void Client::TryRegister(const std::string& name, const std::string& pass)
 	}
 }
 
-bool Client::TryLogin(const std::string& name)
+void Client::TryLogin(const std::string& name, const std::string pswd)
 {
-	SendValidationQuery(name);
+	SendValidationQuery(name, pswd);
 
 	MyMessage val_response = ValidaionResponse();
 
-	if (val_response.sd.name_is_taken)
+	if (val_response.sd.response == MyMessage::KWrongData)
 	{
-		LOG("Name: " << name << " is taken");
-		return false;
+		LOG("Wrong username or password");
+		input_error_.area = InvalidInput::kWrongLoginData;
 	}
 	else
 	{
 		LOG("welcome " << name_);
 		DownloadPenpals(val_response);
-		return true;
+		logged_ = true;
+		socket_.setBlocking(false);
 	}
 }
 
 void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
 {
-	MyMessage validation_msg(true, false, name, pswd);
+	MyMessage validation_msg(MyMessage::kRegistration, name, pswd);
 	sf::Packet val_packet;
 	val_packet << validation_msg;
 
@@ -483,9 +494,9 @@ void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
 	}
 }
 
-void Client::SendValidationQuery(const std::string& name) const
+void Client::SendValidationQuery(const std::string& name, const std::string pswd)
 {
-	MyMessage validation_msg(true, false, name, "blueprint");
+	MyMessage validation_msg(MyMessage::kLogin, name, pswd);
 	sf::Packet val_packet;
 	val_packet << validation_msg;
 
@@ -498,7 +509,7 @@ void Client::SendValidationQuery(const std::string& name) const
 	}
 }
 
-MyMessage Client::ValidaionResponse() const
+MyMessage Client::ValidaionResponse() 
 {
 	sf::Packet val_pckt;
 
