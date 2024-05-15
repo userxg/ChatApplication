@@ -1,7 +1,6 @@
 #pragma once
-#include "MyMessage.h"
-
-
+#include "ChatMessage.h"
+#include <vector>
 
 namespace Net
 {
@@ -9,10 +8,13 @@ namespace Net
 
 	struct Penpal
 	{
-		Penpal(std::string name) : name(name) {}
+		Penpal() : name(""), chat_size(0), chat{} {};
+		Penpal(std::string name) : name(name), chat_size(0), chat{} {}
 		std::string name;
+
 		//push message after into vector after sending message
-		std::vector<MyMessage> chatting;
+		size_t chat_size;
+		std::vector<ChatMessage> chat;
 	};
 
 }

@@ -163,8 +163,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\ChatMessage.h" />
     <ClInclude Include="src\Penpal.h" />
     <ClInclude Include="src\MyMessage.h" />
+    <ClInclude Include="src\ServerData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Penpal.cpp" />
