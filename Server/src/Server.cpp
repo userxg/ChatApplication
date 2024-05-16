@@ -9,7 +9,7 @@ Server::Server(unsigned short port) : listened_port_(port)
 	{
 		std::string file_name = "0users.txt";
 		std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
-		std::ofstream data_base_create(path + file_name);
+		std::ofstream data_base_create(path + file_name, std::ios::app);
 		if (data_base_create.is_open())
 			LOG("DB created");
 		data_base_create.close();

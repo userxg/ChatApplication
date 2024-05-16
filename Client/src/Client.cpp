@@ -194,7 +194,7 @@ void Client::LoginWindow()
 		{
 			
 			bool valid_name = CheckCorrectName(name_);
-			bool valid_password = CheckCorrectPassword(password_, re_password_);
+			bool valid_password = CheckCorrectPassword(password_);
 			if (valid_name && valid_password)
 			{
 				TryLogin(name_, password_);
@@ -608,6 +608,33 @@ bool Client::CheckCorrectPassword(const std::string& pswd, const std::string& r_
 		input_error_.type = InvalidInput::kRePasswordIsNotEqual;
 		return false;
 	}
+	if (pswd.size() == 0)
+	{
+		input_error_.area = InvalidInput::kInvalidPassword;
+		input_error_.type = InvalidInput::kEmptyPassword;
+		return false;
+	}
+
+	if (pswd.size() > 20)
+	{
+		input_error_.area = InvalidInput::kInvalidPassword;
+		input_error_.type = InvalidInput::kLongPassword;
+		return false;
+	}
+	for (char c : pswd)
+	{
+		if (!(c >= '!' && c <= '~'))
+		{
+			input_error_.area = InvalidInput::kInvalidPassword;
+			input_error_.type = InvalidInput::kWrongCharInsidePassword;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Client::CheckCorrectPassword(const std::string& pswd)
+{
 	if (pswd.size() == 0)
 	{
 		input_error_.area = InvalidInput::kInvalidPassword;

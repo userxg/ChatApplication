@@ -80,24 +80,24 @@ private:
 	void SendToMessage(const std::string msg);
 	int FindByName(const std::string sender_name);
 
+
+
 	/*---------------------Login system-------------------*/
 	void LoginWindow();
 	void TryLogin(const std::string& name, const std::string& pswd);
+	bool CheckCorrectPassword(const std::string& pswd);
 	void SendValidationQuery(const std::string& name, const std::string& pswd);
 	MyMessage ValidaionResponse();
 	void DownloadPenpals(MyMessage& val_rsp_msg);
 
 
+
 	/*----------Registration----------*/
 	void RegistrationWindow();
+	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);
 	void TryRegister(const std::string& name, const std::string& passoword);
 	void SendRegisterQuery(const std::string& name, const std::string& pswd);
-	
-
 	bool CheckCorrectName(const std::string& name);
-	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);
-	
-	
 
 
 	/*--------------Test & Debug-------------------------*/
