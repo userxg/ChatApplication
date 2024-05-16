@@ -169,6 +169,7 @@
     <ClInclude Include="src\ServerData.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ChatMessage.cpp" />
     <ClCompile Include="src\Penpal.cpp" />
     <ClCompile Include="src\MyMessage.cpp" />
   </ItemGroup>

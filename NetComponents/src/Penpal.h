@@ -15,18 +15,22 @@ namespace Net
 	{
 		
 		std::string name_;
-
+		bool online_;
 		//push message after into vector after sending message
 		size_t chat_size_;
 		std::vector<ChatMessage> chat_;
 
 	public:
 
-		Penpal() : name_(""), chat_size_(0), chat_{} {};
-		Penpal(std::string name) : name_(name), chat_size_(0), chat_{} {}
+		Penpal() : name_(""), online_(false), chat_size_(0), chat_{} {};
+		Penpal(std::string name, bool online) : name_(name), online_(online), chat_size_(0), chat_{} {}
 
 		std::string& setName() { return name_; }
 		const std::string& getName() const { return name_; }
+
+		bool& setOnline() { return online_; }
+		bool getOnline() const{ return online_; }
+		bool IsOnline() const{ return online_ == true; }
 
 		//size_t& setChatSize() { return chat_size_; }
 		const size_t getChatSize() const { return chat_size_; }

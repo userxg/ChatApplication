@@ -9,7 +9,7 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include "MyMessage.h"
-#include "Penpal.h"
+//#include "Penpal.h"
 #include "InvalidInput.h"
 
 
@@ -85,6 +85,7 @@ private:
 	void TryLogin(const std::string& name, const std::string& pswd);
 	void SendValidationQuery(const std::string& name, const std::string& pswd);
 	MyMessage ValidaionResponse();
+	void DownloadPenpals(MyMessage& val_rsp_msg);
 
 
 	/*----------Registration----------*/
@@ -95,7 +96,7 @@ private:
 	bool CheckCorrectName(const std::string& name);
 	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);
 	
-	void DownloadPenpals(MyMessage& val_rsp_msg);
+	
 
 
 	/*--------------Test & Debug-------------------------*/
@@ -108,4 +109,3 @@ public:
 	~Client();
 	
 };
-

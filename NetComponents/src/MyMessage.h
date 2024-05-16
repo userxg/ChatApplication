@@ -2,8 +2,8 @@
 
 #include <SFML/Network.hpp>
 #include <iostream>
-#include "ChatMessage.h"
-#include "Penpal.h"
+//#include "ChatMessage.h"
+//#include "Penpal.h"
 #include "ServerData.h"
 
 namespace Net

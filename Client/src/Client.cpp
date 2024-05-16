@@ -41,23 +41,19 @@ void Client::InitTestData()
 {
 
 	penpals_.resize(3);
-	penpals_[0] = new Penpal("Nikolay");
-	penpals_[1] = new Penpal("Vasiluy");
-	penpals_[2] = new Penpal("Someone");
-	penpals_[0]->chatting.push_back({ name_, penpals_[0]->name, "hello, Nikolay" });
-	penpals_[0]->chatting.push_back({ penpals_[0]->name, name_, "hello, " + name_ });
-
-	penpals_[1]->chatting.push_back({ name_, penpals_[0]->name, "How is it going" });
-	//penpals_[1]->chatting.push_back({ penpals_[0]->name, name_, "hello, " + name_ });
+	penpals_[0] = new Penpal("Nikolay", true);
+	penpals_[1] = new Penpal("Vasiluy", false);
+	penpals_[0]->AddMessage(name_, penpals_[0]->getName(), "hello, Nikolay");
+	penpals_[0]->AddMessage( penpals_[0]->getName(), name_, "hello, " + name_);
 }
 
 void Client::LogReceivedMessage(const MyMessage& received_msg)
 {
 	switch (received_msg.sd.response)
 	{
-	case MyMessage::kNewRegisterted:
+	case ServerData::kNewRegisterted:
 		LOG("New Registered: " << received_msg.sd.client_name);
-	case MyMessage::kLogin:
+	case ServerData::kLogin:
 		LOG("get Online: " << received_msg.sd.client_name);
 	default:
 		LOG("[" << received_msg.cd.from << "->" << received_msg.cd.to << "]: " << received_msg.cd.message);
@@ -317,7 +313,11 @@ void Client::MemberWindow()
 
 		for (int i = 0; i < penpals_.size(); i++)
 		{
-			if (ImGui::Selectable(penpals_[i]->name.c_str(), selected_penpal_ == i))
+
+			std::string penpal =
+				penpals_[i]->getName() + (penpals_[i]->IsOnline() ? " : Online" : " : Offline");
+
+			if (ImGui::Selectable(penpal.c_str(), selected_penpal_ == i))
 			{
 				selected_penpal_ = i;
 				opened_chat_window = true;
@@ -335,17 +335,18 @@ void Client::ChatWindow()
 		ImGui::SetWindowPos(ImVec2(400, 0));
 		ImGui::SetWindowFontScale(2);
 		
-		for (int i = 0; i < penpals_[selected_penpal_]->chatting.size(); ++i)
+		for (int i = 0; i < penpals_[selected_penpal_]->getChatSize(); ++i)
 		{
 			std::string msg;
-			if (penpals_[selected_penpal_]->chatting[i].cd.from != name_)
+
+			if ((*penpals_[selected_penpal_])[i].from != name_)
 			{
-				msg += (penpals_[selected_penpal_]->chatting[i].cd.from +
-					+ " : " + penpals_[selected_penpal_]->chatting[i].cd.message);
+				msg += ((*penpals_[selected_penpal_])[i].from +
+					+ " : " + (*penpals_[selected_penpal_])[i].message);
 			}
 			else
 			{
-				msg +=  ("me : " + penpals_[selected_penpal_]->chatting[i].cd.message);
+				msg +=  ("me : " + (*penpals_[selected_penpal_])[i].message);
 			}
 			ImGui::Text(msg.c_str());
 		}
@@ -424,13 +425,13 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	case ServerData::kNoResponse:
 	{
 		int sender = FindSender(received_msg.cd.from);
-		penpals_[sender]->chatting.push_back(received_msg);
+		penpals_[sender]->AddMessage(received_msg.cd);
 	}
 
 		
 	case ServerData::kNewRegisterted:
 	{
-		Penpal* new_penpal = new Penpal(received_msg.sd.client_name);
+		Penpal* new_penpal = new Penpal(received_msg.sd.client_name, false);
 		penpals_.push_back(new_penpal);
 	}
 	default:
@@ -530,7 +531,7 @@ MyMessage Client::ValidaionResponse()
 
 void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 {
-	for (int i = 0; i < val_rsp_msg.sd.penpals.size(); ++i)
+	for (int i = 0; i < val_rsp_msg.sd.penpals_cnt; ++i)
 	{
 		Penpal* new_penpal = new Penpal(val_rsp_msg.sd.penpals[i]);
 		penpals_.push_back(new_penpal);
@@ -612,7 +613,7 @@ int Client::FindSender(const std::string sender_name)
 {
 	for (int i = 0; i < penpals_.size(); ++i)
 	{
-		if (penpals_[i]->name == sender_name)
+		if (penpals_[i]->getName() == sender_name)
 			return i;
 	}
 	return -1;
@@ -620,18 +621,18 @@ int Client::FindSender(const std::string sender_name)
 
 void Client::SendToMessage(const std::string msg)
 {
-	MyMessage send_msg = MyMessage(name_, penpals_[selected_penpal_]->name, msg);
+	MyMessage send_msg = MyMessage(name_, penpals_[selected_penpal_]->getName(), msg);
 	sf::Packet send_pck;
 	send_pck << send_msg;
 	sf::Socket::Status send_status = socket_.send(send_pck);
 
 	if (send_status == sf::Socket::Done)
 	{
-		penpals_[selected_penpal_]->chat.push_back(send_msg.cd);
+		penpals_[selected_penpal_]->AddMessage(send_msg.cd);
 	}
 	else
 	{
-		LOG("ERROR: Send message to " << penpals_[selected_penpal_]->name << " \n");
+		LOG("ERROR: Send message to " << penpals_[selected_penpal_]->getName() << " \n");
 	}
 }
 

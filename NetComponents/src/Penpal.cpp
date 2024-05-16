@@ -35,7 +35,7 @@ namespace Net
 	sf::Packet& operator>>(sf::Packet& inp, Penpal& penp)
 	{
 		size_t chat_size;
-		inp >> penp.setName() >> chat_size;
+		inp >> penp.setName() >> penp.setOnline()  >> chat_size;
 		for (int i = 0; i < chat_size; ++i)
 		{
 			ChatMessage ch_msg;
@@ -47,7 +47,7 @@ namespace Net
 
 	sf::Packet& operator<<(sf::Packet& inp, const Penpal& penp)
 	{
-		inp << penp.getName() << penp.getChatSize();
+		inp << penp.getName() << penp.getOnline() << penp.getChatSize();
 		for (int i = 0; i < penp.getChatSize(); ++i)
 		{
 			inp << penp[i];
