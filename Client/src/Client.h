@@ -82,8 +82,8 @@ private:
 
 	/*---------------------Login system-------------------*/
 	void LoginWindow();
-	void TryLogin(const std::string& name, const std::string pswd);
-	void SendValidationQuery(const std::string& name, const std::string pswd);
+	void TryLogin(const std::string& name, const std::string& pswd);
+	void SendValidationQuery(const std::string& name, const std::string& pswd);
 	MyMessage ValidaionResponse();
 
 

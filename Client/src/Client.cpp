@@ -293,6 +293,8 @@ void Client::RegistrationWindow()
 
 
 
+
+
 void Client::Application()
 {
 	MemberWindow();
@@ -419,14 +421,14 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 
 	switch (received_msg.sd.response)
 	{
-	case MyMessage::kNoResponse:
+	case ServerData::kNoResponse:
 	{
 		int sender = FindSender(received_msg.cd.from);
 		penpals_[sender]->chatting.push_back(received_msg);
 	}
 
 		
-	case MyMessage::kNewRegisterted:
+	case ServerData::kNewRegisterted:
 	{
 		Penpal* new_penpal = new Penpal(received_msg.sd.client_name);
 		penpals_.push_back(new_penpal);
@@ -443,7 +445,7 @@ void Client::TryRegister(const std::string& name, const std::string& pass)
 	SendRegisterQuery(name, pass);
 	MyMessage val_response = ValidaionResponse();
 
-	if (val_response.sd.response == MyMessage::kNameIsTaken)
+	if (val_response.sd.response == ServerData::kNameIsTaken)
 	{
 		LOG("Name: " << name << " is taken");
 		input_error_.area = InvalidInput::kInvalidName;
@@ -459,13 +461,13 @@ void Client::TryRegister(const std::string& name, const std::string& pass)
 	}
 }
 
-void Client::TryLogin(const std::string& name, const std::string pswd)
+void Client::TryLogin(const std::string& name, const std::string& pswd)
 {
 	SendValidationQuery(name, pswd);
 
 	MyMessage val_response = ValidaionResponse();
 
-	if (val_response.sd.response == MyMessage::KWrongData)
+	if (val_response.sd.response == ServerData::KWrongData)
 	{
 		LOG("Wrong username or password");
 		input_error_.area = InvalidInput::kWrongLoginData;
@@ -481,7 +483,7 @@ void Client::TryLogin(const std::string& name, const std::string pswd)
 
 void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
 {
-	MyMessage validation_msg(MyMessage::kRegistration, name, pswd);
+	MyMessage validation_msg(ServerData::kRegistration, name, pswd);
 	sf::Packet val_packet;
 	val_packet << validation_msg;
 
@@ -494,9 +496,9 @@ void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)
 	}
 }
 
-void Client::SendValidationQuery(const std::string& name, const std::string pswd)
+void Client::SendValidationQuery(const std::string& name, const std::string& pswd)
 {
-	MyMessage validation_msg(MyMessage::kLogin, name, pswd);
+	MyMessage validation_msg(ServerData::kLogin, name, pswd);
 	sf::Packet val_packet;
 	val_packet << validation_msg;
 
@@ -625,7 +627,7 @@ void Client::SendToMessage(const std::string msg)
 
 	if (send_status == sf::Socket::Done)
 	{
-		penpals_[selected_penpal_]->chatting.push_back(send_msg);
+		penpals_[selected_penpal_]->chat.push_back(send_msg.cd);
 	}
 	else
 	{
