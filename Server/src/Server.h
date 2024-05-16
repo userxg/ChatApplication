@@ -45,8 +45,10 @@ private:
 	void SendToClient(const MyMessage& send_msg, Client* client_to);
 	void BroadcastMessage(const MyMessage& send_msg);
 	bool IsOnline(const std::string& name)const;
+	Client* FindOnlineClient(const std::string& name) const;
 
-	void MessageExchange(const MyMessage& msg);
+	void MessageExchange(const ChatMessage& msg);
+	void UpdateChat(const ChatMessage& msg);
 	
 	/*--------------Registration--------------------*/
 

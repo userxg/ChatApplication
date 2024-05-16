@@ -145,9 +145,27 @@ bool Server::IsOnline(const std::string& name) const
 	return false;
 }
 
-void Server::MessageExchange(const MyMessage& msg)
+Client* Server::FindOnlineClient(const std::string& name) const
 {
-	//UpdateChat(msg.cd.from, msg.cd.to, msg.cd.message);
+	LOG("Find-Online-Client");
+	return nullptr;
+}
+
+void Server::MessageExchange(const ChatMessage& msg)
+{
+	LOG("Message-Echange-------");
+	UpdateChat(msg);
+
+	if (IsOnline(msg.to))
+	{
+		Client* client_to = FindOnlineClient(msg.to);
+		SendToClient(MyMessage(msg), client_to);
+	}
+}
+
+void Server::UpdateChat(const ChatMessage& msg)
+{
+	LOG("Updating-Chat");
 }
 
 void Server::ConnectIncomingClients()
@@ -338,7 +356,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		TryLoginClient(received_msg, client);
 		break;
 	default:
-		MessageExchange(received_msg);
+		MessageExchange(received_msg.cd);
 		break;
 	}
 }

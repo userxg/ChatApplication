@@ -25,7 +25,8 @@ namespace Net
 		MyMessage(const std::string& name_from, const std::string& name_to, const std::string& message)
 			: sd{ ServerData::kNoResponse, "", "", 0, {} }, cd{ name_from, name_to, message } {}
 
-
+		MyMessage(const ChatMessage& msg)
+			: sd{ ServerData::kNoResponse, "", "", 0, {} }, cd(msg) {}
 		//For server queries
 		ServerData sd;
 
