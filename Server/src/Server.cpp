@@ -246,9 +246,22 @@ void Server::LoadChatInPenpal(const std::string& l_client_name, Penpal& new_penp
 	chat.close();
 }
 
-void Server::LoadMessagesInPenpal(Penpal& penpal, const std::ifstream& chat_file)
+void Server::LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file)
 {
 
+	while (!chat_file.eof())
+	{
+		size_t msg_size;
+		std::string from ,msg;
+		chat_file >> msg_size >> from;
+
+		for (size_t i = 0; i < msg_size; i++)
+		{
+			msg += chat_file.get();
+		}
+
+		penpal.AddMessage(from, "", msg);
+	}
 }
 
 

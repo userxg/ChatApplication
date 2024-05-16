@@ -54,7 +54,7 @@ private:
 	bool ValidNamePassword(const std::string& name, const std::string& password);
 	void LoadPenpals(MyMessage& val_resp_msg);
 	void LoadChatInPenpal(const std::string& l_client_name, Penpal& penpal);
-	void LoadMessagesInPenpal(Penpal& penpal, const std::ifstream& chat_file);
+	void LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file);
 
 
 	/*---------------------------Data Base functions---------------------*/
