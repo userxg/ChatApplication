@@ -206,7 +206,7 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 			{
 				++val_rsp_msg.sd.penpals_cnt;
 				Penpal new_penpal(value, IsOnline(value));
-				LoadChat(val_rsp_msg.sd.client_name, new_penpal);
+				LoadChatInPenpal(val_rsp_msg.sd.client_name, new_penpal);
 				val_rsp_msg.sd.penpals.push_back(new_penpal);
 			}
 		}
@@ -216,15 +216,49 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 	
 }
 
-void Server::LoadChat(const std::string& l_client_name, Penpal& new_penpal)
+void Server::LoadChatInPenpal(const std::string& l_client_name, Penpal& new_penpal)
 {
+	std::string chat_file_name;
+	std::string path;
+
+	chat_file_name = l_client_name + "-" + new_penpal.getName();
+	std::ifstream client_penpal_chat(path + chat_file_name);
+	if (client_penpal_chat.is_open())
+	{
+		LoadMessagesInPenpal(new_penpal, client_penpal_chat);
+		client_penpal_chat.close();
+		return;
+	}
+	client_penpal_chat.close();
+
+
+	chat_file_name = new_penpal.getName() + "-" + l_client_name;
+	std::ifstream penpal_client_chat(path + chat_file_name);
+	if (penpal_client_chat.is_open())
+	{
+		LoadMessagesInPenpal(new_penpal, penpal_client_chat);
+		penpal_client_chat.close();
+		return;
+	}
+	penpal_client_chat.close();
+
+	std::ofstream chat(path + chat_file_name);
+	chat.close();
+}
+
+void Server::LoadMessagesInPenpal(Penpal& penpal, const std::ifstream& chat_file)
+{
+
 }
 
 
 
 void Server::AddClientToDB(const MyMessage& val_msg)
 {
-	std::ofstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt", std::ios::app);
+	std::string file_name = "0users.txt";
+	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
+
+	std::ofstream data_base(path + file_name, std::ios::app);
 	if (data_base.is_open())
 		LOG("ADD to DB");
 	data_base << "name: " << val_msg.sd.client_name << "\n";
