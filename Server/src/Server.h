@@ -40,13 +40,19 @@ private:
 
 	void ProcessReceivedMessage(const MyMessage& received_msg, Client* client);
 	
-	void SendToClient(const MyMessage& send_msg);
+	void SendToClient(const MyMessage& send_msg, Client* client_to);
 	void BroadcastMessage(const MyMessage& send_msg);
 	Client* FindOnlineClient(const std::string& name);
 	
+	/*--------------Registration--------------------*/
+
+	void TryRegisterClient(const MyMessage& received_msg, Client* client);
 	
 	/*------------------Validation---------------------------------------------*/
 	bool NameIsTaken(const std::string& checked_name);
+
+
+
 	void SendValidationResponse(const MyMessage& validation_msg, Client* client);
 	void LoadPenpals(MyMessage& val_resp_msg);
 

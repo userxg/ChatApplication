@@ -16,7 +16,7 @@ namespace Net
 		MyMessage()
 			: sd{ServerData::kNoResponse, "", "", 0, {} }, cd{ "", "", "" } {};
 
-		//for Registration of new client
+		//for Registration or Login
 		MyMessage(int response, 
 			const std::string& new_client_name, const std::string& password)
 			: sd{ response, new_client_name, password, 0, {} }, cd{ "", "", "" }

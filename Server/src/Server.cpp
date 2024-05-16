@@ -15,6 +15,26 @@ Server::Server(unsigned short port) : listened_port_(port)
 	}
 }
 
+void Server::TryRegisterClient(const MyMessage& received_msg, Client* reg_client)
+{
+	if (NameIsTaken(received_msg.sd.client_name))
+	{
+		MyMessage validation_response(ServerData::kNameIsTaken, "", "");
+		LOG("Name is taken");
+		SendToClient(validation_response, reg_client);
+
+	}
+	else
+	{
+		MyMessage validation_response(ServerData::kNewRegisterted, received_msg.sd.client_name, "");
+		BroadcastMessage(validation_response);
+		AddClientToDB(received_msg);
+		LOG("Name is available");
+		SendToClient(validation_response, reg_client);
+	}
+
+}
+
 bool Server::NameIsTaken(const std::string& checked_name)
 {
 	LOG("Check if name is taken");
@@ -38,8 +58,6 @@ bool Server::NameIsTaken(const std::string& checked_name)
 	}
 	data_base.close();
 	return false;
-	
-	
 }
 
 
@@ -52,8 +70,7 @@ void Server::BroadcastMessage(const MyMessage& send_msg)
 	{
 		if (client->name != "Unlogged")
 		{
-			broad_msg.cd.to = client->name;
-			SendToClient(broad_msg);
+			SendToClient(broad_msg, client);
 		}
 	}
 }
@@ -145,40 +162,32 @@ void Server::AddClientToDB(const MyMessage& val_msg)
 
 void Server::ReceivedLog(const MyMessage& log_message) const
 {
-	
-	if (log_message.sd.is_new_client)
-		LOG("New client tries name: " << log_message.sd.client_name);
-	else
+	switch (log_message.sd.response)
+	{
+	case ServerData::kRegistration:
+		LOG("On Registration: " << log_message.sd.client_name);
+	case ServerData::kLogin:
+		LOG("On Login: " << log_message.sd.client_name);
+	default:
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
+		break;
+	}
+
+		
 }
 
 void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* client)
 {
-	if (received_msg.sd.is_new_client == true)
+	switch (received_msg.sd.response)
 	{
-		if (NameIsTaken(received_msg.sd.client_name))
-		{
-			MyMessage validation_response(true, true, "", "");
-			LOG("Name is taken");
-			SendValidationResponse(validation_response, client);
+	case ServerData::kRegistration:
+		TryRegisterClient(received_msg, client);
+	case ServerData::kLogin:
 
-		}
-		else
-		{
-			MyMessage validation_response(true, false, received_msg.sd.client_name, "");
-			BroadcastMessage(validation_response);
-			AddClientToDB(received_msg);
-			LOG("Name is available");
-			SendValidationResponse(validation_response, client);
-		}
-		
+	default:
+
+		break;
 	}
-	else
-	{
-		SendToClient(received_msg);
-	}
-
-
 }
 
 void Server::Run()
@@ -204,26 +213,15 @@ Client* Server::FindOnlineClient(const std::string& name)
 	return nullptr;
 }
 
-void Server::SendToClient(const MyMessage& send_msg)
+void Server::SendToClient(const MyMessage& send_msg, Client* client_to)
 {
 	sf::Packet send_packet;
-
-	//Change on Client online
-	Client* client_to = FindOnlineClient(send_msg.cd.to);
-	if (client_to == nullptr)
+	send_packet << send_msg;
+	if (client_to->socket.send(send_packet) != sf::Socket::Done)
 	{
-		//Send to offline
+		LOG("Cound't send packet");
 	}
-	else
-	{
-		
-		send_packet << send_msg;
-		if (client_to->socket.send(send_packet) != sf::Socket::Done)
-		{
-			LOG("Cound't send packet");
-		}
-		else LOG("Send to " << client_to->name);
-	}
+	else LOG("Send to " << client_to->name);
 }
 
 void Server::SendValidationResponse(const MyMessage& send_msg, Client* client)
