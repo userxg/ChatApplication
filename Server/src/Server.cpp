@@ -80,8 +80,28 @@ void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
 
 }
 
-bool Server::ValidNamePassword(const std::string& name, const std::string& password)
+bool Server::ValidNamePassword(const std::string& chck_name, const std::string& chck_password)
 {
+	std::ifstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt", std::ios::app);
+	if (data_base.is_open())
+	{
+		while (!data_base.eof())
+		{
+			std::string key, name;
+			data_base >> key >> name;
+			if (key == "name:")
+			{
+				std::string pswd;
+				data_base >> key >> pswd;
+				if (name == chck_name && pswd == chck_password)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	data_base.close();
 	return false;
 }
 
