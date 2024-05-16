@@ -268,7 +268,7 @@ void Client::RegistrationWindow()
 				ImGui::Text("Invalid name: use only numbers, characters or \"_\"");
 				break;
 			case InvalidInput::kNameIsTaken:
-				ImGui::Text(std::string("Name: "+ name_ + " is taken").c_str());
+				ImGui::Text(std::string("Name is taken").c_str());
 				break;
 			}
 		case InvalidInput::kInvalidPassword:

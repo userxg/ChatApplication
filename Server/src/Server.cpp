@@ -40,7 +40,9 @@ void Server::TryRegisterClient(const MyMessage& received_msg, Client* reg_client
 bool Server::NameIsTaken(const std::string& checked_name)
 {
 	LOG("Check if name is taken");
-	std::ifstream data_base(std::string("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt"));
+	std::string file_name = "0users.txt";
+	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
+	std::ifstream data_base(std::string(path+file_name));
 	if (data_base.is_open())
 	{
 		while (!data_base.eof())
@@ -82,9 +84,13 @@ void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
 
 }
 
-bool Server::ValidNamePassword(const std::string& chck_name, const std::string& chck_password)
+
+bool Server::ValidNamePassword(const std::string& chck_name, const std::string& chck_password)const
 {
-	std::ifstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt", std::ios::app);
+	LOG("Valid Name Password");
+	std::string file_name = "0users.txt";
+	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
+	std::ifstream data_base(path + file_name);
 	if (data_base.is_open())
 	{
 		while (!data_base.eof())
