@@ -103,6 +103,8 @@ bool Server::ValidNamePassword(const std::string& chck_name, const std::string& 
 				data_base >> key >> pswd;
 				if (name == chck_name && pswd == chck_password)
 				{
+					LOG("valid " << chck_name);
+					data_base.close();
 					return true;
 				}
 			}
@@ -110,6 +112,7 @@ bool Server::ValidNamePassword(const std::string& chck_name, const std::string& 
 	}
 
 	data_base.close();
+	LOG("invalid " << chck_name);
 	return false;
 }
 
