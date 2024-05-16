@@ -148,7 +148,12 @@ bool Server::IsOnline(const std::string& name) const
 Client* Server::FindOnlineClient(const std::string& name) const
 {
 	LOG("Find-Online-Client");
-	return nullptr;
+	for (auto& client : online_clients_)
+	{
+		if (client->name == name) return client;
+	}
+
+	throw std::range_error("Can't find client");
 }
 
 void Server::MessageExchange(const ChatMessage& msg)
@@ -166,6 +171,42 @@ void Server::MessageExchange(const ChatMessage& msg)
 void Server::UpdateChat(const ChatMessage& msg)
 {
 	LOG("Updating-Chat");
+
+	std::string chat_file_name;
+
+	chat_file_name = msg.from + "-" + msg.to + ".txt";
+	std::ifstream from_to_chat_find(db_dir_path_ + chat_file_name);
+	if (from_to_chat_find.is_open())
+	{
+		from_to_chat_find.close();
+		std::ofstream from_to_chat(db_dir_path_ + chat_file_name, std::ios::app);
+		AddMessageInFile(msg, from_to_chat);
+		from_to_chat.close();
+		return;
+	}
+	from_to_chat_find.close();
+
+
+	chat_file_name = msg.to + "-" + msg.from + ".txt";
+	std::ifstream to_from_chat_find(db_dir_path_ + chat_file_name);
+	if (to_from_chat_find.is_open())
+	{
+		to_from_chat_find.close();
+		std::ofstream to_from_chat(db_dir_path_ + chat_file_name, std::ios::app);
+		AddMessageInFile(msg, to_from_chat);
+		to_from_chat.close();
+		return;
+	}
+	to_from_chat_find.close();
+
+	throw std::exception("Can't open needed chat");
+}
+
+void Server::AddMessageInFile(const ChatMessage& msg, std::ofstream& chat_file)
+{
+	size_t msg_size = msg.message.size();
+	chat_file << msg_size << " " << msg.from << " ";
+	chat_file << msg.message << "\n";
 }
 
 void Server::ConnectIncomingClients()
@@ -301,10 +342,13 @@ void Server::LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file)
 		}
 		else
 		{
+			char ch = chat_file.get();//space control
 			for (size_t i = 0; i < msg_size; i++)
 			{
 				msg += chat_file.get();
 			}
+			ch = chat_file.get(); //"\n" control
+
 			penpal.AddMessage(from, "", msg);
 		}
 		

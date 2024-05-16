@@ -4,7 +4,14 @@ int main()
 {
     
     Server server(2525);
-    server.Run();
+    try {
+        server.Run();
+
+    }
+    catch (std::exception& e)
+    {
+        std::cout << e.what() << "\n";
+    }
    
     system("pause");
     std::cin.get();

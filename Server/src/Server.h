@@ -49,6 +49,7 @@ private:
 
 	void MessageExchange(const ChatMessage& msg);
 	void UpdateChat(const ChatMessage& msg);
+	void AddMessageInFile(const ChatMessage& msg, std::ofstream& chat_file);
 	
 	/*--------------Registration--------------------*/
 

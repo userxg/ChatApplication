@@ -10,7 +10,7 @@ int main() {
     }
     catch (std::exception& e)
     {
-        std::cout << e.what();
+        std::cout << e.what() << "\n";
     }
 
     std::cin.get();
