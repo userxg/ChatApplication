@@ -53,8 +53,10 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 	{
 	case ServerData::kNewRegisterted:
 		LOG("New Registered: " << received_msg.sd.client_name);
+		break;
 	case ServerData::kLogin:
 		LOG("get Online: " << received_msg.sd.client_name);
+		break;
 	default:
 		LOG("[" << received_msg.cd.from << "->" << received_msg.cd.to << "]: " << received_msg.cd.message);
 		break;
@@ -436,21 +438,25 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	{
 		int sender = FindByName(received_msg.cd.from);
 		penpals_[sender]->AddMessage(received_msg.cd);
+		break;
 	}
 	case ServerData::kNewRegisterted:
 	{
 		Penpal* new_penpal = new Penpal(received_msg.sd.client_name, false);
 		penpals_.push_back(new_penpal);
+		break;
 	}
 	case ServerData::kNewLogged:
 	{
 		int logged_penpal = FindByName(received_msg.cd.from);
 		penpals_[logged_penpal]->setOnline() = true;
+		break;
 	}
 	case ServerData::kDisconnected:
 	{
 		int logged_penpal = FindByName(received_msg.cd.from);
 		penpals_[logged_penpal]->setOnline() = false;
+		break;
 	}
 	default:
 		break;

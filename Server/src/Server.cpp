@@ -289,8 +289,10 @@ void Server::ReceivedLog(const MyMessage& log_message) const
 	{
 	case ServerData::kRegistration:
 		LOG("On Registration: " << log_message.sd.client_name);
+		break;
 	case ServerData::kLogin:
 		LOG("On Login: " << log_message.sd.client_name);
+		break;
 	default:
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
 		break;
@@ -305,10 +307,11 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 	{
 	case ServerData::kRegistration:
 		TryRegisterClient(received_msg, client);
+		break;
 	case ServerData::kLogin:
 		TryLoginClient(received_msg, client);
+		break;
 	default:
-
 		break;
 	}
 }
