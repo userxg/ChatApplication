@@ -191,7 +191,17 @@ void Client::LoginWindow()
 
 		if (ImGui::Button("Sign in"))
 		{
-			TryLogin(name_, password_);
+			
+			bool valid_name = CheckCorrectName(name_);
+			bool valid_password = CheckCorrectPassword(password_, re_password_);
+			if (valid_name && valid_password)
+			{
+				TryLogin(name_, password_);
+			}
+			else
+			{
+				input_error_.area = InvalidInput::kWrongLoginData;
+			}
 		}
 
 
@@ -235,7 +245,6 @@ void Client::RegistrationWindow()
 				opened_log_wind_ = false;
 
 			}
-
 		}
 
 		switch (input_error_.area)
@@ -424,15 +433,23 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	{
 	case ServerData::kNoResponse:
 	{
-		int sender = FindSender(received_msg.cd.from);
+		int sender = FindByName(received_msg.cd.from);
 		penpals_[sender]->AddMessage(received_msg.cd);
 	}
-
-		
 	case ServerData::kNewRegisterted:
 	{
 		Penpal* new_penpal = new Penpal(received_msg.sd.client_name, false);
 		penpals_.push_back(new_penpal);
+	}
+	case ServerData::kNewLogged:
+	{
+		int logged_penpal = FindByName(received_msg.cd.from);
+		penpals_[logged_penpal]->setOnline() = true;
+	}
+	case ServerData::kDisconnected:
+	{
+		int logged_penpal = FindByName(received_msg.cd.from);
+		penpals_[logged_penpal]->setOnline() = false;
 	}
 	default:
 		break;
@@ -477,6 +494,7 @@ void Client::TryLogin(const std::string& name, const std::string& pswd)
 	{
 		LOG("welcome " << name_);
 		DownloadPenpals(val_response);
+		name_ = val_response.sd.client_name;
 		logged_ = true;
 		socket_.setBlocking(false);
 	}
@@ -609,11 +627,11 @@ bool Client::CheckCorrectPassword(const std::string& pswd, const std::string& r_
 }
 
 
-int Client::FindSender(const std::string sender_name)
+int Client::FindByName(const std::string name)
 {
 	for (int i = 0; i < penpals_.size(); ++i)
 	{
-		if (penpals_[i]->getName() == sender_name)
+		if (penpals_[i]->getName() == name)
 			return i;
 	}
 	return -1;

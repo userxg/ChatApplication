@@ -12,6 +12,7 @@ namespace Net
 			kNoResponse,
 			kNameIsTaken,
 			kNewRegisterted,
+			kDisconnected,
 			kRegistration,
 			kLogin,
 			kNewLogged,

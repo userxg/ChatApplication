@@ -78,7 +78,7 @@ private:
 	void ReceivePackets();
 	void ProcessIncomingMessage(const MyMessage& received_msg);
 	void SendToMessage(const std::string msg);
-	int FindSender(const std::string sender_name);
+	int FindByName(const std::string sender_name);
 
 	/*---------------------Login system-------------------*/
 	void LoginWindow();
@@ -89,9 +89,10 @@ private:
 
 
 	/*----------Registration----------*/
+	void RegistrationWindow();
 	void TryRegister(const std::string& name, const std::string& passoword);
 	void SendRegisterQuery(const std::string& name, const std::string& pswd);
-	void RegistrationWindow();
+	
 
 	bool CheckCorrectName(const std::string& name);
 	bool CheckCorrectPassword(const std::string& pswd, const std::string& r_pswd);

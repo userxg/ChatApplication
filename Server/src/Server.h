@@ -47,14 +47,13 @@ private:
 	/*--------------Registration--------------------*/
 
 	void TryRegisterClient(const MyMessage& received_msg, Client* client);
-	
-	/*------------------Validation---------------------------------------------*/
 	bool NameIsTaken(const std::string& checked_name);
-
-
-
-	void SendValidationResponse(const MyMessage& validation_msg, Client* client);
+	
+	/*---------------Login--------------------------------------*/
+	void TryLoginClient(const MyMessage& received_msg, Client* log_client);
+	bool ValidNamePassword(const std::string& name, const std::string& password);
 	void LoadPenpals(MyMessage& val_resp_msg);
+	void LoadChat(const std::string& l_client_name, const std::string& penpal_name);
 
 
 

@@ -60,6 +60,31 @@ bool Server::NameIsTaken(const std::string& checked_name)
 	return false;
 }
 
+void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
+{
+	if (ValidNamePassword(received_msg.sd.client_name, received_msg.sd.password))
+	{
+		MyMessage validation_response(ServerData::kNewLogged, received_msg.sd.client_name, "");
+		BroadcastMessage(validation_response);
+		LoadPenpals(validation_response);
+		log_client->name = received_msg.sd.client_name;
+		LOG("Name is available");
+		SendToClient(validation_response, log_client);
+	}
+	else
+	{
+		MyMessage validation_response(ServerData::KWrongData, "", "");
+		LOG("Wrong name or pswd");
+		SendToClient(validation_response, log_client);
+	}
+
+}
+
+bool Server::ValidNamePassword(const std::string& name, const std::string& password)
+{
+	return false;
+}
+
 
 //make another
 void Server::BroadcastMessage(const MyMessage& send_msg)
@@ -138,15 +163,29 @@ void Server::ManageIncomingPackets()
 void Server::LoadPenpals(MyMessage& val_rsp_msg)
 {
 	
-	/*for (auto& client : clients_)
+	std::ifstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt");
+
+	if (data_base.is_open())
 	{
-		if (client->name != "Vait for name")
+		while (!data_base.eof())
 		{
-			val_rsp_msg.sd.penpals.push_back(client->name);
-			++val_rsp_msg.sd.penpals_cnt;
+			std::string key;
+			std::string value;
+			data_base >> key >> value;
+			/*if (key == "name:")
+			{
+				++val_rsp_msg.sd.penpals_cnt;
+				LoadChat(val_rsp_msg.sd.client_name, value);
+			}*/
 		}
-	}*/
+	}
+
+	data_base.close();
 	
+}
+
+void Server::LoadChat(const std::string& l_client_name, const std::string& penpal_name)
+{
 }
 
 
@@ -183,7 +222,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 	case ServerData::kRegistration:
 		TryRegisterClient(received_msg, client);
 	case ServerData::kLogin:
-
+		TryLoginClient(received_msg, client);
 	default:
 
 		break;
@@ -224,13 +263,3 @@ void Server::SendToClient(const MyMessage& send_msg, Client* client_to)
 	else LOG("Send to " << client_to->name);
 }
 
-void Server::SendValidationResponse(const MyMessage& send_msg, Client* client)
-{
-	LOG("sending Validation response");
-	sf::Packet send_packet;
-	send_packet << send_msg;
-	if (client->socket.send(send_packet) != sf::Socket::Done)
-	{
-		LOG("Cound't send packet");
-	}
-}
