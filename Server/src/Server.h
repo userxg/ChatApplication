@@ -28,6 +28,9 @@ private:
 
 	unsigned short listened_port_;
 
+	std::string db_file_name_;
+	std::string db_dir_path_;
+
 
 private:
 

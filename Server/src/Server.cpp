@@ -1,15 +1,16 @@
 #include "Server.h"
 
-Server::Server(unsigned short port) : listened_port_(port)
+Server::Server(unsigned short port) : 
+	listened_port_(port),
+	db_file_name_("0users.txt"),
+	db_dir_path_("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\")
 {
 	sf::Socket::Status listen_status = listener_.listen(listened_port_);
 
 	if (listen_status != sf::Socket::Done) LOG("Failed to listen");
 	else
 	{
-		std::string file_name = "0users.txt";
-		std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
-		std::ofstream data_base_create(path + file_name, std::ios::app);
+		std::ofstream data_base_create(db_dir_path_ + db_file_name_, std::ios::app);
 		if (data_base_create.is_open())
 			LOG("DB created");
 		data_base_create.close();
@@ -40,9 +41,7 @@ void Server::TryRegisterClient(const MyMessage& received_msg, Client* reg_client
 bool Server::NameIsTaken(const std::string& checked_name)
 {
 	LOG("Check if name is taken");
-	std::string file_name = "0users.txt";
-	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
-	std::ifstream data_base(std::string(path+file_name));
+	std::ifstream data_base(db_dir_path_ + db_file_name_);
 	if (data_base.is_open())
 	{
 		while (!data_base.eof())
@@ -72,7 +71,7 @@ void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
 		BroadcastMessage(validation_response);
 		LoadPenpals(validation_response);
 		log_client->name = received_msg.sd.client_name;
-		LOG("Name is available");
+		LOG("Logging");
 		SendToClient(validation_response, log_client);
 	}
 	else
@@ -88,9 +87,7 @@ void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
 bool Server::ValidNamePassword(const std::string& chck_name, const std::string& chck_password)const
 {
 	LOG("Valid Name Password");
-	std::string file_name = "0users.txt";
-	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
-	std::ifstream data_base(path + file_name);
+	std::ifstream data_base(db_dir_path_ + db_file_name_);
 	if (data_base.is_open())
 	{
 		while (!data_base.eof())
@@ -120,7 +117,7 @@ bool Server::ValidNamePassword(const std::string& chck_name, const std::string& 
 //make another
 void Server::BroadcastMessage(const MyMessage& broad_msg)
 {
-	LOG("Broadcasting");
+	LOG("Broadcasting: start---");
 	for (auto& client : online_clients_)
 	{
 		if (client->name != "Unlogged")
@@ -128,6 +125,7 @@ void Server::BroadcastMessage(const MyMessage& broad_msg)
 			SendToClient(broad_msg, client);
 		}
 	}
+	LOG("Broadcasting: stop---");
 }
 
 bool Server::IsOnline(const std::string& name) const
@@ -206,8 +204,8 @@ void Server::ManageIncomingPackets()
 
 void Server::LoadPenpals(MyMessage& val_rsp_msg)
 {
-	
-	std::ifstream data_base("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt");
+	LOG("Load-Penpls");
+	std::ifstream data_base(db_dir_path_ + db_file_name_);
 
 	if (data_base.is_open())
 	{
@@ -215,7 +213,7 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 		{
 			std::string key, value;
 			data_base >> key >> value;
-			if (key == "name:")
+			if (key == "name:" && value != val_rsp_msg.sd.client_name)
 			{
 				++val_rsp_msg.sd.penpals_cnt;
 				Penpal new_penpal(value, IsOnline(value));
@@ -231,11 +229,12 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 
 void Server::LoadChatInPenpal(const std::string& l_client_name, Penpal& new_penpal)
 {
-	std::string chat_file_name;
-	std::string path;
+	LOG("Load-Chat-In-Penp: " << new_penpal.getName());
 
-	chat_file_name = l_client_name + "-" + new_penpal.getName();
-	std::ifstream client_penpal_chat(path + chat_file_name);
+	std::string chat_file_name;
+
+	chat_file_name = l_client_name + "-" + new_penpal.getName() + ".txt";
+	std::ifstream client_penpal_chat(db_dir_path_ + chat_file_name);
 	if (client_penpal_chat.is_open())
 	{
 		LoadMessagesInPenpal(new_penpal, client_penpal_chat);
@@ -245,8 +244,8 @@ void Server::LoadChatInPenpal(const std::string& l_client_name, Penpal& new_penp
 	client_penpal_chat.close();
 
 
-	chat_file_name = new_penpal.getName() + "-" + l_client_name;
-	std::ifstream penpal_client_chat(path + chat_file_name);
+	chat_file_name = new_penpal.getName() + "-" + l_client_name + ".txt";
+	std::ifstream penpal_client_chat(db_dir_path_ + chat_file_name);
 	if (penpal_client_chat.is_open())
 	{
 		LoadMessagesInPenpal(new_penpal, penpal_client_chat);
@@ -255,7 +254,7 @@ void Server::LoadChatInPenpal(const std::string& l_client_name, Penpal& new_penp
 	}
 	penpal_client_chat.close();
 
-	std::ofstream chat(path + chat_file_name);
+	std::ofstream chat(db_dir_path_ + chat_file_name);
 	chat.close();
 }
 
@@ -268,12 +267,19 @@ void Server::LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file)
 		std::string from ,msg;
 		chat_file >> msg_size >> from;
 
-		for (size_t i = 0; i < msg_size; i++)
+		if (from == "")
 		{
-			msg += chat_file.get();
+			return;
 		}
-
-		penpal.AddMessage(from, "", msg);
+		else
+		{
+			for (size_t i = 0; i < msg_size; i++)
+			{
+				msg += chat_file.get();
+			}
+			penpal.AddMessage(from, "", msg);
+		}
+		
 	}
 }
 
@@ -281,10 +287,7 @@ void Server::LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file)
 
 void Server::AddClientToDB(const MyMessage& val_msg)
 {
-	std::string file_name = "0users.txt";
-	std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
-
-	std::ofstream data_base(path + file_name, std::ios::app);
+	std::ofstream data_base(db_dir_path_ + db_file_name_, std::ios::app);
 	if (data_base.is_open())
 		LOG("ADD to DB");
 	data_base << "name: " << val_msg.sd.client_name << "\n";
@@ -305,9 +308,7 @@ void Server::ReceivedLog(const MyMessage& log_message) const
 	default:
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
 		break;
-	}
-
-		
+	}	
 }
 
 void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* client)
