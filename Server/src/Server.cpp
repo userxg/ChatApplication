@@ -107,10 +107,9 @@ bool Server::ValidNamePassword(const std::string& chck_name, const std::string& 
 
 
 //make another
-void Server::BroadcastMessage(const MyMessage& send_msg)
+void Server::BroadcastMessage(const MyMessage& broad_msg)
 {
 	LOG("Broadcasting");
-	MyMessage broad_msg = send_msg;
 	for (auto& client : online_clients_)
 	{
 		if (client->name != "Unlogged")
@@ -118,6 +117,11 @@ void Server::BroadcastMessage(const MyMessage& send_msg)
 			SendToClient(broad_msg, client);
 		}
 	}
+}
+
+bool Server::IsOnline(const std::string& name) const
+{
+	return false;
 }
 
 void Server::ConnectIncomingClients()
@@ -189,14 +193,15 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 	{
 		while (!data_base.eof())
 		{
-			std::string key;
-			std::string value;
+			std::string key, value;
 			data_base >> key >> value;
-			/*if (key == "name:")
+			if (key == "name:")
 			{
 				++val_rsp_msg.sd.penpals_cnt;
-				LoadChat(val_rsp_msg.sd.client_name, value);
-			}*/
+				Penpal new_penpal(value, IsOnline(value));
+				LoadChat(val_rsp_msg.sd.client_name, new_penpal);
+				val_rsp_msg.sd.penpals.push_back(new_penpal);
+			}
 		}
 	}
 
@@ -204,9 +209,10 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 	
 }
 
-void Server::LoadChat(const std::string& l_client_name, const std::string& penpal_name)
+void Server::LoadChat(const std::string& l_client_name, Penpal& new_penpal)
 {
 }
+
 
 
 void Server::AddClientToDB(const MyMessage& val_msg)

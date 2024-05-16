@@ -42,6 +42,7 @@ private:
 	
 	void SendToClient(const MyMessage& send_msg, Client* client_to);
 	void BroadcastMessage(const MyMessage& send_msg);
+	bool IsOnline(const std::string& name)const;
 	Client* FindOnlineClient(const std::string& name);
 	
 	/*--------------Registration--------------------*/
@@ -53,13 +54,12 @@ private:
 	void TryLoginClient(const MyMessage& received_msg, Client* log_client);
 	bool ValidNamePassword(const std::string& name, const std::string& password);
 	void LoadPenpals(MyMessage& val_resp_msg);
-	void LoadChat(const std::string& l_client_name, const std::string& penpal_name);
+	void LoadChat(const std::string& l_client_name, Penpal& new_penpal);
 
 
 
 	/*---------------------------Data Base functions---------------------*/
 	void AddClientToDB(const MyMessage& validation_msg);
-
 	//LOG functions
 	void ReceivedLog(const MyMessage& received_packet)const;
 public:
