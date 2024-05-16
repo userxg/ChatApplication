@@ -121,6 +121,13 @@ void Server::BroadcastMessage(const MyMessage& broad_msg)
 
 bool Server::IsOnline(const std::string& name) const
 {
+	for (auto& client : online_clients_)
+	{
+		if (client->name == name)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -263,19 +270,6 @@ void Server::Run()
 
 	incoming_connection_thread.join();
 	manage_incoming_packets.join();
-}
-
-
-Client* Server::FindOnlineClient(const std::string& name)
-{
-	for (auto& client : online_clients_)
-	{
-		if (client->name == name)
-		{
-			return client;
-		}
-	}
-	return nullptr;
 }
 
 void Server::SendToClient(const MyMessage& send_msg, Client* client_to)
