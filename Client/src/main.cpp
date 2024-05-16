@@ -5,7 +5,13 @@
 
 int main() {
     Client client;
-    client.Run();
+    try {
+        client.Run();
+    }
+    catch (std::exception& e)
+    {
+        std::cout << e.what();
+    }
 
     std::cin.get();
     system("pause");

@@ -54,8 +54,11 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 	case ServerData::kNewRegisterted:
 		LOG("New Registered: " << received_msg.sd.client_name);
 		break;
-	case ServerData::kLogin:
+	case ServerData::kNewLogged:
 		LOG("get Online: " << received_msg.sd.client_name);
+		break;
+	case ServerData::kDisconnected:
+		LOG("get Offline: " << received_msg.sd.client_name);
 		break;
 	default:
 		LOG("[" << received_msg.cd.from << "->" << received_msg.cd.to << "]: " << received_msg.cd.message);
@@ -90,7 +93,14 @@ void Client::Run()
 
 Client::~Client()
 {
+	DeletePenpals();
+	delete window_;
+}
 
+void Client::DeletePenpals()
+{
+	for (auto& penpal : penpals_)
+		delete penpal;
 }
 
 bool Client::Running() const
@@ -448,13 +458,13 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	}
 	case ServerData::kNewLogged:
 	{
-		int logged_penpal = FindByName(received_msg.cd.from);
+		int logged_penpal = FindByName(received_msg.sd.client_name);
 		penpals_[logged_penpal]->setOnline() = true;
 		break;
 	}
 	case ServerData::kDisconnected:
 	{
-		int logged_penpal = FindByName(received_msg.cd.from);
+		int logged_penpal = FindByName(received_msg.sd.client_name);
 		penpals_[logged_penpal]->setOnline() = false;
 		break;
 	}
@@ -668,7 +678,9 @@ int Client::FindByName(const std::string name)
 		if (penpals_[i]->getName() == name)
 			return i;
 	}
-	return -1;
+	LOG("Can't find by name");
+
+	throw std::range_error("Find by name hasn't found penpal");
 }
 
 void Client::SendToMessage(const std::string msg)

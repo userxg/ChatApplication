@@ -42,10 +42,11 @@ private:
 
 
 	void ProcessReceivedMessage(const MyMessage& received_msg, Client* client);
-	
 	void SendToClient(const MyMessage& send_msg, Client* client_to);
 	void BroadcastMessage(const MyMessage& send_msg);
 	bool IsOnline(const std::string& name)const;
+
+	void MessageExchange(const MyMessage& msg);
 	
 	/*--------------Registration--------------------*/
 
@@ -62,12 +63,15 @@ private:
 
 	/*---------------------------Data Base functions---------------------*/
 	void AddClientToDB(const MyMessage& validation_msg);
-	//LOG functions
+
+
+	/*-----------------Log & Test & Debug -----------------------------*/
 	void ReceivedLog(const MyMessage& received_packet)const;
+	void DeleteClients();
 public:
 
 	Server(unsigned short port);
-
+	~Server();
 	void Run();
 
 };

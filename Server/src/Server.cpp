@@ -18,6 +18,11 @@ Server::Server(unsigned short port) :
 	}
 }
 
+Server::~Server()
+{
+	DeleteClients();
+}
+
 void Server::TryRegisterClient(const MyMessage& received_msg, Client* reg_client)
 {
 	if (NameIsTaken(received_msg.sd.client_name))
@@ -138,6 +143,11 @@ bool Server::IsOnline(const std::string& name) const
 		}
 	}
 	return false;
+}
+
+void Server::MessageExchange(const MyMessage& msg)
+{
+	//UpdateChat(msg.cd.from, msg.cd.to, msg.cd.message);
 }
 
 void Server::ConnectIncomingClients()
@@ -311,6 +321,12 @@ void Server::ReceivedLog(const MyMessage& log_message) const
 	}	
 }
 
+void Server::DeleteClients()
+{
+	for (auto& client : online_clients_)
+		delete client;
+}
+
 void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* client)
 {
 	switch (received_msg.sd.response)
@@ -322,6 +338,7 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		TryLoginClient(received_msg, client);
 		break;
 	default:
+		MessageExchange(received_msg);
 		break;
 	}
 }

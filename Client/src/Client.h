@@ -5,6 +5,7 @@
 #include <imgui_stdlib.h>
 
 #include <thread>
+#include <stdexcept>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -100,9 +101,12 @@ private:
 	bool CheckCorrectName(const std::string& name);
 
 
-	/*--------------Test & Debug-------------------------*/
+	/*--------------Test & Debug & Memory-------------------------*/
 	void InitTestData();
 	void LogReceivedMessage(const MyMessage& received_msg);
+
+
+	void DeletePenpals();
 
 public:
 	Client();
