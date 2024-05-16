@@ -7,7 +7,9 @@ Server::Server(unsigned short port) : listened_port_(port)
 	if (listen_status != sf::Socket::Done) LOG("Failed to listen");
 	else
 	{
-		std::ofstream data_base_create("D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\0users.txt");
+		std::string file_name = "0users.txt";
+		std::string path = "D:\\CPP\\CMODULES\\projects\\4_ChatApplication\\DB\\";
+		std::ofstream data_base_create(path + file_name);
 		if (data_base_create.is_open())
 			LOG("DB created");
 		data_base_create.close();
@@ -151,6 +153,8 @@ void Server::ConnectIncomingClients()
 
 void Server::DisconnectClient(Client* client, size_t position)
 {
+	MyMessage disc_msg(ServerData::kDisconnected, client->name, "");
+	BroadcastMessage(disc_msg);
 	LOG(client->name << " was disconnected");
 	delete client;
 	online_clients_.erase(online_clients_.begin() + position);

@@ -176,16 +176,15 @@ void Client::LoginWindow()
 		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
 
 
-		if (input_error_.area == InvalidInput::kWrongLoginData)
-		{
-			ImGui::Text("wrong username or password");
-		}
+		
 
 
 		if (ImGui::Button("I'm new"))
 		{
 			input_error_.area = InvalidInput::kNoErrors;
 			opened_log_wind_ = false;
+			name_ = "";
+			password_ = "";
 		}
 		ImGui::SameLine();
 
@@ -202,6 +201,11 @@ void Client::LoginWindow()
 			{
 				input_error_.area = InvalidInput::kWrongLoginData;
 			}
+		}
+
+		if (input_error_.area == InvalidInput::kWrongLoginData)
+		{
+			ImGui::Text("wrong username or password");
 		}
 
 
@@ -228,6 +232,9 @@ void Client::RegistrationWindow()
 		if (ImGui::Button("Sign in"))
 		{
 			opened_log_wind_ = true;
+			name_ = "";
+			password_ = "";
+			re_password_ = "";
 		}
 		ImGui::SameLine();
 
@@ -238,12 +245,6 @@ void Client::RegistrationWindow()
 			if (valid_name && valid_password)
 			{
 				TryRegister(name_, password_);
-			}
-			else
-			{
-				input_error_.area = InvalidInput::kNoErrors;
-				opened_log_wind_ = false;
-
 			}
 		}
 
