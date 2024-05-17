@@ -237,9 +237,12 @@ void Server::ConnectIncomingClients()
 
 void Server::DisconnectClient(Client* client, size_t position)
 {
-	MyMessage disc_msg(ServerData::kDisconnected, client->name, "");
-	BroadcastMessage(disc_msg);
-	LOG(client->name << " was disconnected");
+	if (client->name != "Unlogged")
+	{
+		MyMessage disc_msg(ServerData::kDisconnected, client->name, "");
+		BroadcastMessage(disc_msg);
+		LOG(client->name << " was disconnected");
+	}
 	delete client;
 	online_clients_.erase(online_clients_.begin() + position);
 }
