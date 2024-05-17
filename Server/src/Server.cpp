@@ -240,6 +240,7 @@ void Server::DisconnectClient(Client* client, size_t position)
 	if (client->name != "Unlogged")
 	{
 		MyMessage disc_msg(ServerData::kDisconnected, client->name, "");
+		client->name = "Unlogged";
 		BroadcastMessage(disc_msg);
 		LOG(client->name << " was disconnected");
 	}
@@ -299,6 +300,7 @@ void Server::LoadPenpals(MyMessage& val_rsp_msg)
 				Penpal new_penpal(value, IsOnline(value));
 				LoadChatInPenpal(val_rsp_msg.sd.client_name, new_penpal);
 				val_rsp_msg.sd.penpals.push_back(new_penpal);
+				LOG(val_rsp_msg.sd.penpals_cnt << " " << new_penpal.getName() << " loaded");
 			}
 		}
 	}

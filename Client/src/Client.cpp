@@ -39,12 +39,15 @@ void Client::PollEvents()
 
 void Client::LogOut()
 {
-	SendLogOutQuery();
+	opened_chat_window = false;
 	logged_ = false;
+	socket_.setBlocking(true);
+	input_error_ = { InvalidInput::kNoErrors, InvalidInput::kNoErrors };
+	DeletePenpals();
+	SendLogOutQuery();
+
 	name_ = "";
 	password_ = "";
-	DeletePenpals();
-
 }
 
 void Client::InitTestData()
@@ -640,11 +643,11 @@ MyMessage Client::ValidaionResponse()
 
 void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 {
-	penpals_.reserve(val_rsp_msg.sd.penpals_cnt);
+	LOG("Downloading " << val_rsp_msg.sd.penpals_cnt << " clients");
 	for (int i = 0; i < val_rsp_msg.sd.penpals_cnt; ++i)
 	{
 		Penpal* new_penpal = new Penpal(val_rsp_msg.sd.penpals[i]);
-		penpals_.emplace_back(new_penpal);
+		penpals_.push_back(new_penpal);
 	}
 }
 
@@ -721,6 +724,7 @@ bool Client::CheckCorrectPassword(const std::string& pswd, const std::string& r_
 void Client::SendLogOutQuery()
 {
 	MyMessage log_out_msg(ServerData::kLoggedOut, name_, "");
+
 	sf::Packet log_out_packet;
 	log_out_packet << log_out_msg;
 
