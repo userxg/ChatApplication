@@ -194,6 +194,7 @@ void Client::LoginWindow()
 		if (ImGui::Button("I'm new"))
 		{
 			input_error_.area = InvalidInput::kNoErrors;
+			input_error_.type = InvalidInput::kNoErrors;
 			opened_log_wind_ = false;
 			name_ = "";
 			password_ = "";
@@ -217,7 +218,10 @@ void Client::LoginWindow()
 
 		if (input_error_.area == InvalidInput::kWrongLoginData)
 		{
-			ImGui::Text("wrong username or password");
+			if (input_error_.type == InvalidInput::kAlreadyOnline)
+				ImGui::Text("user is already online");
+			else
+				ImGui::Text("wrong name or password");
 		}
 
 
@@ -502,19 +506,34 @@ void Client::TryLogin(const std::string& name, const std::string& pswd)
 
 	MyMessage val_response = ValidaionResponse();
 
-	if (val_response.sd.response == ServerData::KWrongData)
+	switch (val_response.sd.response)
+	{
+	case ServerData::kAlreadyOnline:
 	{
 		LOG("Wrong username or password");
 		input_error_.area = InvalidInput::kWrongLoginData;
+		input_error_.type = InvalidInput::kAlreadyOnline;
+		break;
 	}
-	else
+	case ServerData::KWrongData:
+	{
+		LOG("Wrong username or password");
+		input_error_.area = InvalidInput::kWrongLoginData;
+		input_error_.type = InvalidInput::kWrongLoginData;
+		break;
+	}
+
+	default:
 	{
 		LOG("welcome " << name_);
 		DownloadPenpals(val_response);
 		name_ = val_response.sd.client_name;
 		logged_ = true;
 		socket_.setBlocking(false);
+		break;
 	}
+	}
+
 }
 
 void Client::SendRegisterQuery(const std::string& name, const std::string& pswd)

@@ -70,6 +70,14 @@ bool Server::NameIsTaken(const std::string& checked_name)
 
 void Server::TryLoginClient(const MyMessage& received_msg, Client* log_client)
 {
+	if (IsOnline(received_msg.sd.client_name))
+	{
+		MyMessage validation_response(ServerData::kAlreadyOnline, "", "");
+		LOG(received_msg.sd.client_name << "  is already online");
+		SendToClient(validation_response, log_client);
+		return;
+	}
+
 	if (ValidNamePassword(received_msg.sd.client_name, received_msg.sd.password))
 	{
 		MyMessage validation_response(ServerData::kNewLogged, received_msg.sd.client_name, "");

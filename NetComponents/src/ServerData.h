@@ -16,7 +16,8 @@ namespace Net
 			kRegistration,
 			kLogin,
 			kNewLogged,
-			KWrongData
+			KWrongData,
+			kAlreadyOnline
 		};
 
 

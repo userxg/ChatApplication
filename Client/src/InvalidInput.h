@@ -14,6 +14,7 @@ enum class InvalidInput
 	kWrongFirstNameChar,
 	kWrongCharInsideName,
 	kNameIsTaken,
+	kAlreadyOnline,
 
 
 	//input password errors======================
