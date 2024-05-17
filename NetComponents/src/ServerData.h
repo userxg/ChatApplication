@@ -17,7 +17,8 @@ namespace Net
 			kLogin,
 			kNewLogged,
 			KWrongData,
-			kAlreadyOnline
+			kAlreadyOnline,
+			kLoggedOut
 		};
 
 

@@ -62,6 +62,7 @@ private:
 	void LoadPenpals(MyMessage& val_resp_msg);
 	void LoadChatInPenpal(const std::string& l_client_name, Penpal& penpal);
 	void LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file);
+	void LogOutClient(const MyMessage& log_out_msg, Client* log_out_client);
 
 
 	/*---------------------------Data Base functions---------------------*/

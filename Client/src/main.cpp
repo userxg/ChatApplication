@@ -13,7 +13,7 @@ int main() {
         std::cout << e.what() << "\n";
     }
 
-    std::cin.get();
-    system("pause");
+    //std::cin.get();
+    //system("pause");
     return 0;
 }

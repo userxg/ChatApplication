@@ -37,6 +37,16 @@ void Client::PollEvents()
 
 
 
+void Client::LogOut()
+{
+	SendLogOutQuery();
+	logged_ = false;
+	name_ = "";
+	password_ = "";
+	DeletePenpals();
+
+}
+
 void Client::InitTestData()
 {
 
@@ -60,14 +70,18 @@ void Client::LogReceivedMessage(const MyMessage& received_msg)
 	case ServerData::kDisconnected:
 		LOG("get Offline: " << received_msg.sd.client_name);
 		break;
-	default:
+	case ServerData::kNoResponse:
 		LOG("[" << received_msg.cd.from << "->" << received_msg.cd.to << "]: " << received_msg.cd.message);
+		break;
+	default:
 		break;
 	}
 
 }
 
-Client::Client() : name_(""), logged_(false), opened_chat_window(false), opened_log_wind_(true),
+Client::Client() :
+	app_closed_(false), name_(""), logged_(false),
+	opened_chat_window(false), opened_log_wind_(true),
 input_error_{InvalidInput::kNoErrors, InvalidInput::kNoErrors}
 {
 	ConnectToServer("127.0.0.1", 2525);
@@ -82,6 +96,7 @@ input_error_{InvalidInput::kNoErrors, InvalidInput::kNoErrors}
 
 void Client::Run()
 {
+
 	std::thread receive_incoming_messages(&Client::ReceivePackets, this);
 	//std::thread sfml_run(&Client::SFMLGuiRun, this);
 	
@@ -93,14 +108,17 @@ void Client::Run()
 
 Client::~Client()
 {
+	LOG("Free memory");
 	DeletePenpals();
 	delete window_;
 }
 
 void Client::DeletePenpals()
 {
+	LOG("Free penpals");
 	for (auto& penpal : penpals_)
 		delete penpal;
+	penpals_.resize(0);
 }
 
 bool Client::Running() const
@@ -146,8 +164,8 @@ void Client::Render()
 
 void Client::SFMLGuiRun()
 {
-	while (Running()) {
-
+	while (Running() && app_closed_ == false) 
+	{
 		Update();
 		Render();
 	}
@@ -182,6 +200,8 @@ void Client::LoginWindow()
 
 		//CC
 		ImGui::SetWindowFontScale(2);
+		ImGui::SetCursorPos(ImVec2(960, 540));
+		ImGui::BeginGroup();
 		ImGui::Text("username ");
 		ImGui::InputText("##name", &name_);
 		ImGui::Text("password ");
@@ -223,6 +243,7 @@ void Client::LoginWindow()
 			else
 				ImGui::Text("wrong name or password");
 		}
+		ImGui::EndGroup();
 
 
 	}
@@ -319,6 +340,7 @@ void Client::RegistrationWindow()
 
 void Client::Application()
 {
+	ProfileWindow();
 	MemberWindow();
 	if (opened_chat_window)
 	{
@@ -330,10 +352,10 @@ void Client::Application()
 
 void Client::MemberWindow()
 {
-	ImGui::SetNextWindowSize(ImVec2(400, 1080));
+	ImGui::SetNextWindowSize(ImVec2(400, 960));
 	if (ImGui::Begin("Members", NULL, NULL))
 	{
-		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SetWindowPos(ImVec2(0, 120));
 		ImGui::SetWindowFontScale(2);
 
 
@@ -426,6 +448,7 @@ void Client::ReceivePackets()
 	LOG("Receive Thread started");
 	while (true)
 	{
+		if (app_closed_) break;
 		if (logged_)
 		{
 			//LOG("Receiving....");
@@ -468,8 +491,14 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	}
 	case ServerData::kDisconnected:
 	{
-		int logged_penpal = FindByName(received_msg.sd.client_name);
-		penpals_[logged_penpal]->setOnline() = false;
+		int quited_penpal = FindByName(received_msg.sd.client_name);
+		penpals_[quited_penpal]->setOnline() = false;
+		break;
+	}
+	case ServerData::kLoggedOut:
+	{
+		int unlogged_penpal = FindByName(received_msg.sd.client_name);
+		penpals_[unlogged_penpal]->setOnline() = false;
 		break;
 	}
 	default:
@@ -477,6 +506,32 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 	}
 
 
+}
+
+void Client::ProfileWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(400, 120));
+	if (ImGui::Begin("Profile", NULL, NULL))
+	{
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SetWindowFontScale(2);
+
+		ImGui::Text(name_.c_str());
+		
+		ImGui::BeginGroup();
+		if(ImGui::Button("log out"))
+		{
+			//ImGui::Text("Log out");
+			LogOut();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("close"))
+		{
+			app_closed_ = true;
+		}
+		ImGui::EndGroup();
+			
+	}ImGui::End();
 }
 
 void Client::TryRegister(const std::string& name, const std::string& pass)
@@ -585,10 +640,11 @@ MyMessage Client::ValidaionResponse()
 
 void Client::DownloadPenpals(MyMessage& val_rsp_msg)
 {
+	penpals_.reserve(val_rsp_msg.sd.penpals_cnt);
 	for (int i = 0; i < val_rsp_msg.sd.penpals_cnt; ++i)
 	{
 		Penpal* new_penpal = new Penpal(val_rsp_msg.sd.penpals[i]);
-		penpals_.push_back(new_penpal);
+		penpals_.emplace_back(new_penpal);
 	}
 }
 
@@ -660,6 +716,21 @@ bool Client::CheckCorrectPassword(const std::string& pswd, const std::string& r_
 		}
 	}
 	return true;
+}
+
+void Client::SendLogOutQuery()
+{
+	MyMessage log_out_msg(ServerData::kLoggedOut, name_, "");
+	sf::Packet log_out_packet;
+	log_out_packet << log_out_msg;
+
+	if (socket_.send(log_out_packet) != sf::Socket::Done)
+	{
+		LOG("Could not send LogOut request");
+	}
+	else {
+		LOG("LogOut query");
+	}
 }
 
 bool Client::CheckCorrectPassword(const std::string& pswd)

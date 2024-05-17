@@ -366,6 +366,13 @@ void Server::LoadMessagesInPenpal(Penpal& penpal, std::ifstream& chat_file)
 	}
 }
 
+void Server::LogOutClient(const MyMessage& log_out_msg, Client* log_out_client)
+{
+	LOG(log_out_client->name << "'s got Unlogged");
+	log_out_client->name = "Unlogged";
+	BroadcastMessage(log_out_msg);
+}
+
 
 
 void Server::AddClientToDB(const MyMessage& val_msg)
@@ -388,8 +395,10 @@ void Server::ReceivedLog(const MyMessage& log_message) const
 	case ServerData::kLogin:
 		LOG("On Login: " << log_message.sd.client_name);
 		break;
-	default:
+	case ServerData::kNoResponse:
 		LOG("[" << log_message.cd.from << "->" << log_message.cd.to << "]: " << log_message.cd.message);
+		break;
+	default:
 		break;
 	}	
 }
@@ -409,6 +418,9 @@ void Server::ProcessReceivedMessage(const MyMessage& received_msg, Client* clien
 		break;
 	case ServerData::kLogin:
 		TryLoginClient(received_msg, client);
+		break;
+	case ServerData::kLoggedOut:
+		LogOutClient(received_msg, client);
 		break;
 	default:
 		MessageExchange(received_msg.cd);

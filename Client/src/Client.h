@@ -35,6 +35,7 @@ private:
 	bool logged_;
 	bool opened_log_wind_;
 	InputError input_error_;
+	bool app_closed_;
 
 	/*------------------------Chat---------------------------*/
 	std::vector<Penpal*> penpals_;
@@ -67,6 +68,7 @@ private:
 	/*----------------ImGui Windows-----------------------*/
 	void LoginForm();
 	void Application();
+	void ProfileWindow();
 	void ChatWindow();
 	void MemberWindow();
 	void SendWindow();
@@ -90,7 +92,8 @@ private:
 	void SendValidationQuery(const std::string& name, const std::string& pswd);
 	MyMessage ValidaionResponse();
 	void DownloadPenpals(MyMessage& val_rsp_msg);
-
+	void LogOut();
+	void SendLogOutQuery();
 
 
 	/*----------Registration----------*/
