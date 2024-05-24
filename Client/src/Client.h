@@ -42,6 +42,7 @@ private:
 	int selected_penpal_ = 0;
 	bool opened_chat_window;
 	std::string input_msg_buf;
+	ImGuiWindowFlags w_flags_;
 
 	/*-------------------Work with sockets------------------*/
 	sf::TcpSocket socket_;

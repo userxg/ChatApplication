@@ -178,7 +178,8 @@ void Client::SFMLGuiRun()
 
 void Client::InitVariables()
 {
-
+	w_flags_ = ImGuiWindowFlags_NoCollapse
+		| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 }
 
 
@@ -202,52 +203,79 @@ void Client::LoginWindow()
 	if (ImGui::Begin("Log in", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 
 		//CC
-		ImGui::SetWindowFontScale(2);
-		ImGui::SetCursorPos(ImVec2(960, 540));
-		ImGui::BeginGroup();
-		ImGui::Text("username ");
-		ImGui::InputText("##name", &name_);
-		ImGui::Text("password ");
-		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
+		ImGuiWindowFlags w_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+			| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
+		ImGuiChildFlags ch_flags = ImGuiChildFlags_Border;
 
 
-		
-
-
-		if (ImGui::Button("I'm new"))
+		ImGui::SetCursorPos(ImVec2(660, 190));
+		if (ImGui::BeginChild("##loginform", ImVec2(600, 700), ch_flags, w_flags))
 		{
-			input_error_.area = InvalidInput::kNoErrors;
-			input_error_.type = InvalidInput::kNoErrors;
-			opened_log_wind_ = false;
-			name_ = "";
-			password_ = "";
-		}
-		ImGui::SameLine();
-
-		if (ImGui::Button("Sign in"))
-		{
+			ImGui::SetWindowFontScale(3);
+			ImGui::SetCursorPos(ImVec2(180, 50));
+			ImGui::Text("Login");
 			
-			bool valid_name = CheckCorrectName(name_);
-			bool valid_password = CheckCorrectPassword(password_);
-			if (valid_name && valid_password)
-			{
-				TryLogin(name_, password_);
-			}
-			else
-			{
-				input_error_.area = InvalidInput::kWrongLoginData;
-			}
-		}
+			ImGui::SetCursorPos(ImVec2(50, 160));
 
-		if (input_error_.area == InvalidInput::kWrongLoginData)
-		{
-			if (input_error_.type == InvalidInput::kAlreadyOnline)
-				ImGui::Text("user is already online");
-			else
-				ImGui::Text("wrong name or password");
-		}
-		ImGui::EndGroup();
+			if (ImGui::BeginChild("##input", ImVec2(500, 500), ch_flags ^ ImGuiChildFlags_Border, w_flags))
+			{
+				ImGui::SetWindowFontScale(1.2);
 
+
+				ImGui::SetCursorPos(ImVec2(135, 50));
+				ImGui::Text("username ");
+				ImGui::SetCursorPos(ImVec2(80, 120));
+				ImGui::InputText("##name", &name_);
+				ImGui::SetCursorPos(ImVec2(135, 190));
+				ImGui::Text("password ");
+				ImGui::SetCursorPos(ImVec2(80, 260));
+				ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
+
+
+
+
+				ImGui::SetCursorPos(ImVec2(50, 350));
+				ImGui::SetWindowFontScale(1.1);
+
+				if (ImGui::Button("I'm new", ImVec2(200, 60)))
+				{
+					input_error_.area = InvalidInput::kNoErrors;
+					input_error_.type = InvalidInput::kNoErrors;
+					opened_log_wind_ = false;
+					name_ = "";
+					password_ = "";
+				}
+				ImGui::SameLine();
+
+				if (ImGui::Button("Sign in", ImVec2(200, 60)))
+				{
+
+					bool valid_name = CheckCorrectName(name_);
+					bool valid_password = CheckCorrectPassword(password_);
+					if (valid_name && valid_password)
+					{
+						TryLogin(name_, password_);
+					}
+					else
+					{
+						input_error_.area = InvalidInput::kWrongLoginData;
+					}
+				}
+				ImGui::SetWindowFontScale(0.9);
+				ImGui::SetCursorPos(ImVec2(50, 430));
+
+				if (input_error_.area == InvalidInput::kWrongLoginData)
+				{
+					if (input_error_.type == InvalidInput::kAlreadyOnline)
+						ImGui::Text("user is already online");
+					else
+						ImGui::Text("wrong name or password");
+				}
+			}
+			ImGui::EndChild();
+		}
+		ImGui::EndChild();
+		ImGui::SetWindowFontScale(2);
 
 	}
 	ImGui::End();
@@ -259,79 +287,117 @@ void Client::RegistrationWindow()
 	ImGui::SetNextWindowSize(ImVec2(1920, 1080));
 	if (ImGui::Begin("Registration", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
 
-		//CC
-		ImGui::SetWindowFontScale(2);
-		ImGui::Text("new name: ");
-		ImGui::InputText("##name", &name_);
-		ImGui::Text("password ");
-		ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
-		ImGui::Text("re-password ");
-		ImGui::InputText("##re-password", &re_password_, ImGuiInputTextFlags_Password);
+			//CC
+			ImGuiWindowFlags w_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+				| ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
+			ImGuiChildFlags ch_flags = ImGuiChildFlags_Border;
 
 
-		if (ImGui::Button("Sign in"))
-		{
-			opened_log_wind_ = true;
-			name_ = "";
-			password_ = "";
-			re_password_ = "";
-		}
-		ImGui::SameLine();
-
-		if (ImGui::Button("Register"))
-		{
-			bool valid_name = CheckCorrectName(name_);
-			bool valid_password = CheckCorrectPassword(password_, re_password_);
-			if (valid_name && valid_password)
+			ImGui::SetCursorPos(ImVec2(560, 140));
+			if (ImGui::BeginChild("##Regform", ImVec2(800, 800), ch_flags, w_flags))
 			{
-				TryRegister(name_, password_);
-			}
-		}
+				ImGui::SetWindowFontScale(3);
+				ImGui::SetCursorPos(ImVec2(160, 50));
+				ImGui::Text("Registration");
 
-		switch (input_error_.area)
-		{
-		case InvalidInput::kInvalidName:
-			switch (input_error_.type)
-			{
-			case InvalidInput::kEmptyName:
-				ImGui::Text("Empty name");
-				break;
-			case InvalidInput::kLongName:
-				ImGui::Text("Name is too long");
-				break;
-			case InvalidInput::kWrongFirstNameChar:
-				ImGui::Text("Name should start with character");
-				break;
-			case InvalidInput::kWrongCharInsideName:
-				ImGui::Text("Invalid name: use only numbers, characters or \"_\"");
-				break;
-			case InvalidInput::kNameIsTaken:
-				ImGui::Text(std::string("Name is taken").c_str());
-				break;
-			}
-		case InvalidInput::kInvalidPassword:
-			switch (input_error_.type)
-			{
-			case InvalidInput::kRePasswordIsNotEqual:
-				ImGui::Text("re-password isn't equal");
-				break;
-			case InvalidInput::kEmptyPassword:
-				ImGui::Text("Empty password");
-				break;
-			case InvalidInput::kLongPassword:
-				ImGui::Text("Password is to long");
-				break;
-			case InvalidInput::kWrongCharInsidePassword:
-				ImGui::Text("Inavalid password: use only numbers, characters or  ~`!@#$%^&*()_-+={[}]|\\:;\"'<,>.?/,");
-				break;
-			}
-		default:
-			break;
-		}
+				ImGui::SetCursorPos(ImVec2(50, 140));
 
-		
+				if (ImGui::BeginChild("##input", ImVec2(700, 630), ch_flags ^ ImGuiChildFlags_Border, w_flags))
+				{
+					//CC
+					ImGui::SetWindowFontScale(1.2);
 
-		
+					ImGui::SetCursorPos(ImVec2(235, 50));
+					ImGui::Text("new name ");
+					ImGui::SetCursorPos(ImVec2(135, 120));
+					ImGui::InputText("##name", &name_);
+
+					ImGui::SetCursorPos(ImVec2(235, 190));
+					ImGui::Text("password ");
+					ImGui::SetCursorPos(ImVec2(135, 260));
+					ImGui::InputText("##password", &password_, ImGuiInputTextFlags_Password);
+
+					ImGui::SetCursorPos(ImVec2(205, 330));
+					ImGui::Text("re-password ");
+					ImGui::SetCursorPos(ImVec2(135, 400));
+
+					ImGui::InputText("##re-password", &re_password_, ImGuiInputTextFlags_Password);
+
+
+
+
+					ImGui::SetCursorPos(ImVec2(150, 490));
+					ImGui::SetWindowFontScale(1.1);
+
+					if (ImGui::Button("Sign in", ImVec2(200, 60)))
+					{
+						opened_log_wind_ = true;
+						name_ = "";
+						password_ = "";
+						re_password_ = "";
+					}
+					ImGui::SameLine();
+
+					if (ImGui::Button("Register", ImVec2(200, 60)))
+					{
+						bool valid_name = CheckCorrectName(name_);
+						bool valid_password = CheckCorrectPassword(password_, re_password_);
+						if (valid_name && valid_password)
+						{
+							TryRegister(name_, password_);
+						}
+					}
+					ImGui::SetWindowFontScale(0.9);
+					ImGui::SetCursorPos(ImVec2(150, 570));
+
+					switch (input_error_.area)
+					{
+					case InvalidInput::kInvalidName:
+						switch (input_error_.type)
+						{
+						case InvalidInput::kEmptyName:
+							ImGui::Text("Empty name");
+							break;
+						case InvalidInput::kLongName:
+							ImGui::Text("Name is too long");
+							break;
+						case InvalidInput::kWrongFirstNameChar:
+							ImGui::Text("name starts with char");
+							break;
+						case InvalidInput::kWrongCharInsideName:
+							ImGui::Text("only [0-9, _, A-z] in name");
+							break;
+						case InvalidInput::kNameIsTaken:
+							ImGui::Text(std::string("Name is taken").c_str());
+							break;
+						}
+					case InvalidInput::kInvalidPassword:
+						switch (input_error_.type)
+						{
+						case InvalidInput::kRePasswordIsNotEqual:
+							ImGui::Text("re-password isn't equal");
+							break;
+						case InvalidInput::kEmptyPassword:
+							ImGui::Text("Empty password");
+							break;
+						case InvalidInput::kLongPassword:
+							ImGui::Text("Password is to long");
+							break;
+						case InvalidInput::kWrongCharInsidePassword:
+							ImGui::Text("wrong chars in password");
+							break;
+						}
+					default:
+						break;
+					}
+
+
+				}
+				ImGui::EndChild();
+			}
+			ImGui::EndChild();
+			ImGui::SetWindowFontScale(2);
+
 	}
 	ImGui::End();
 }
@@ -356,7 +422,7 @@ void Client::Application()
 void Client::MemberWindow()
 {
 	ImGui::SetNextWindowSize(ImVec2(400, 960));
-	if (ImGui::Begin("Members", NULL, NULL))
+	if (ImGui::Begin("Members", NULL, w_flags_))
 	{
 		ImGui::SetWindowPos(ImVec2(0, 120));
 		ImGui::SetWindowFontScale(2);
@@ -381,7 +447,7 @@ void Client::MemberWindow()
 void Client::ChatWindow()
 {
 	ImGui::SetNextWindowSize(ImVec2(1520, 800));
-	if (ImGui::Begin("messages", &opened_chat_window, NULL))
+	if (ImGui::Begin("messages", &opened_chat_window, w_flags_))
 	{
 		ImGui::SetWindowPos(ImVec2(400, 0));
 		ImGui::SetWindowFontScale(2);
@@ -410,7 +476,7 @@ void Client::ChatWindow()
 void Client::SendWindow()
 {
 	ImGui::SetNextWindowSize(ImVec2(1520, 280));
-	if (ImGui::Begin("##sendwindow", &opened_chat_window, ImGuiWindowFlags_NoTitleBar))
+	if (ImGui::Begin("##sendwindow", &opened_chat_window, ImGuiWindowFlags_NoTitleBar | w_flags_))
 	{
 		ImGui::SetWindowPos(ImVec2(400, 800));
 		ImGui::SetWindowFontScale(2);
@@ -420,8 +486,8 @@ void Client::SendWindow()
 		bool enter_input = ImGui::InputTextMultiline("##onsend", &input_msg_buf, ImVec2(1200, ImGui::GetTextLineHeight() * 5), input_text_flags);
 		ImGui::SameLine();
 
-		ImGui::SetCursorPos(ImVec2(1280, 100));
-		bool button_input = ImGui::Button("Send", ImVec2(100, 100));
+		ImGui::SetCursorPos(ImVec2(1300, 100));
+		bool button_input = ImGui::Button("Send", ImVec2(140, 80));
 
 
 		if (enter_input || button_input)
@@ -514,7 +580,7 @@ void Client::ProcessIncomingMessage(const MyMessage& received_msg)
 void Client::ProfileWindow()
 {
 	ImGui::SetNextWindowSize(ImVec2(400, 120));
-	if (ImGui::Begin("Profile", NULL, NULL))
+	if (ImGui::Begin("Profile", NULL, w_flags_))
 	{
 		ImGui::SetWindowPos(ImVec2(0, 0));
 		ImGui::SetWindowFontScale(2);

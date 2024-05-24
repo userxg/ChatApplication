@@ -207,7 +207,11 @@ void Server::UpdateChat(const ChatMessage& msg)
 	}
 	to_from_chat_find.close();
 
-	throw std::exception("Can't open needed chat");
+	std::ofstream chat(db_dir_path_ + chat_file_name);
+	AddMessageInFile(msg, chat);
+	chat.close();
+	return;
+
 }
 
 void Server::AddMessageInFile(const ChatMessage& msg, std::ofstream& chat_file)
